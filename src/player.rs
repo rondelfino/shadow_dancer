@@ -22,7 +22,7 @@ impl PlayerBundle {
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
-                    translation: Vec3::new(0.0, 175.0, 1.0),
+                    translation: Vec3::new(0.0, 200.0, 1.0),
                     ..Default::default()
                 },
                 ..default()
