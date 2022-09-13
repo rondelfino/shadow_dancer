@@ -23,8 +23,8 @@ enum GameState {
 mod components;
 mod enemy;
 mod player;
-mod settings;
-mod systems;
+// mod settings;
+// mod systems;
 
 const WORLD_WIDTH: f32 = 550.0;
 const WINDOW_HEIGHT: f32 = 800.0;
@@ -40,8 +40,12 @@ fn setup(
     camera_bundle.projection = OrthographicProjection {
         far: 1000.0,
         depth_calculation: DepthCalculation::ZDifference,
-        scaling_mode: ScalingMode::FixedHorizontal(1000.0),
-        scale: 0.75,
+        scaling_mode: ScalingMode::None,
+        scale: 1.0,
+        left: -400.0,
+        right: 400.0,
+        top: 225.0,
+        bottom: -225.0,
         ..Default::default()
     };
     //camera
@@ -167,8 +171,8 @@ fn main() {
         .insert_resource(ImageSettings::default_nearest())
         .insert_resource(WindowDescriptor {
             title: "Shadow Dancer".to_string(),
-
-            scale_factor_override: Some(1.0),
+            width: 1600.0,
+            height: 900.0,
             ..default()
         })
         .insert_resource(SpawnTimer(Timer::from_seconds(0.5, true)))
