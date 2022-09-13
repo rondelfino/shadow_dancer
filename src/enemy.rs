@@ -10,7 +10,7 @@ pub struct EnemyBundle {
     gravity: Gravity,
     rebound_force: ReboundForce,
     #[bundle]
-    sprite_bundle: SpriteBundle,
+    sprite_bundle: SpriteSheetBundle,
 }
 
 impl EnemyBundle {
@@ -28,8 +28,9 @@ impl EnemyBundle {
         world_width: f32,
         gravity: f32,
         enemy_speed: f32,
-        rebound_force: f32,
         trajectory: Vec2,
+        asset_server: Res<AssetServer>,
+        mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     ) -> Result<Self, String> {
         if (trajectory.x, trajectory.y) < (0.0, 0.0) || (trajectory.x, trajectory.y) > (1.0, 1.0) {
             return Err("The trajectory must be between 0 and 1".to_string());
@@ -40,17 +41,17 @@ impl EnemyBundle {
             false => 1.,
         };
 
+        let texture_handle = asset_server.load("enemy/red_ninja.png");
+        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 2, 1);
+        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
         Ok(EnemyBundle {
             enemy: Enemy,
             velocity: Velocity(trajectory * enemy_speed),
             gravity: Gravity(gravity),
-            rebound_force: ReboundForce(rebound_force),
-            sprite_bundle: SpriteBundle {
-                sprite: Sprite {
-                    color: Color::rgb(1.0, 0.0, 0.0),
-                    custom_size: Some(Vec2::new(50.0, 50.0)),
-                    ..default()
-                },
+            rebound_force: ReboundForce(enemy_speed * trajectory.y),
+            sprite_bundle: SpriteSheetBundle {
+                texture_atlas: texture_atlas_handle,
                 transform: Transform {
                     translation: Vec3::new(direction * world_width / 2.0, -350.0, 0.0),
                     ..default()
@@ -60,7 +61,19 @@ impl EnemyBundle {
         })
     }
 
-    pub fn pawn(world_width: f32) -> Self {
-        Self::new(world_width, 4.5, 1000.0, 700.0, Vec2::new(1.0, 0.25)).unwrap()
+    pub fn pawn(
+        world_width: f32,
+        asset_server: Res<AssetServer>,
+        texture_atlases: ResMut<Assets<TextureAtlas>>,
+    ) -> Self {
+        Self::new(
+            world_width,
+            1.75,
+            300.0,
+            Vec2::new(1.0, 1.0),
+            asset_server,
+            texture_atlases,
+        )
+        .unwrap()
     }
 }
