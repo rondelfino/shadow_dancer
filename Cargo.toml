@@ -1,12 +1,12 @@
 [package]
-name = "my_game"
+name = "shadow_dancer"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.7.0", features = ["dynamic"] }
+bevy = { version = "0.8.1", features = ["dynamic"] }
 rand = "0.8.5"
 
 [profile.dev]
