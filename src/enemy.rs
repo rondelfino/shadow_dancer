@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use rand::random;
 
-use crate::components::{Enemy, Gravity, ReboundForce, Velocity};
+use crate::components::{Enemy, Gravity, InitialEnemySpeed, Velocity};
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
     enemy: Enemy,
     velocity: Velocity,
     gravity: Gravity,
-    rebound_force: ReboundForce,
+    initial_enemy_speed: InitialEnemySpeed,
     #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
@@ -21,7 +21,7 @@ impl EnemyBundle {
     /// * `world_width` - The horizontal size of the world in pixels
     /// * `gravity` - Downward force acting on the spawned enemy
     /// * `enemy_speed` - Starting speed of the enemy
-    /// * `rebound_force` - The force used to calculate the speed of an enemy when changing direction
+    /// * `initial_enemy_speed` - The force used to calculate the speed of an enemy when changing direction
     /// * `trajectory` - Starting trajectory of the enemy used to calculate launch angle of the enemy; x and y values normalized between 0 and 1
     ///
     pub fn new(
@@ -49,7 +49,7 @@ impl EnemyBundle {
             enemy: Enemy,
             velocity: Velocity(trajectory * enemy_speed),
             gravity: Gravity(gravity),
-            rebound_force: ReboundForce(enemy_speed * trajectory.y),
+            initial_enemy_speed: InitialEnemySpeed(enemy_speed * trajectory.y),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {

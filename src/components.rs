@@ -10,7 +10,11 @@ pub struct Enemy;
 pub struct Gravity(pub f32);
 
 #[derive(Component)]
-pub struct ReboundForce(pub f32);
+pub struct InitialEnemySpeed(pub f32);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct Velocity(pub Vec2);
+
+#[derive(Component, Deref, DerefMut)]
+struct AnimationTimer(Timer);
+
