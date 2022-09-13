@@ -6,6 +6,7 @@ use bevy::{
     },
 };
 use components::*;
+use constants::*;
 use enemy::EnemyBundle;
 use player::PlayerBundle;
 
@@ -21,36 +22,33 @@ enum GameState {
 }
 
 mod components;
+mod constants;
 mod enemy;
 mod player;
 // mod settings;
 // mod systems;
-
-const WORLD_WIDTH: f32 = 550.0;
-const WINDOW_HEIGHT: f32 = 800.0;
-
-const PLAYER_SPEED: f32 = 600.0;
 
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
+    let half_height = WORLD_HEIGHT / 2.0;
+    let half_width = WORLD_WIDTH / 2.0;
+
     let mut camera_bundle = Camera2dBundle::default();
     camera_bundle.projection = OrthographicProjection {
         far: 1000.0,
         depth_calculation: DepthCalculation::ZDifference,
         scaling_mode: ScalingMode::None,
         scale: 1.0,
-        left: -400.0,
-        right: 400.0,
-        top: 225.0,
-        bottom: -225.0,
+        left: -half_width,
+        right: half_width,
+        top: half_height,
+        bottom: -half_height,
         ..Default::default()
     };
-    //camera
     commands.spawn_bundle(camera_bundle);
-    //player
     spawn_player(&mut commands, asset_server, texture_atlases);
 }
 
@@ -70,11 +68,9 @@ fn spawn_enemy(
     asset_server: Res<AssetServer>,
     texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    commands.spawn().insert_bundle(EnemyBundle::pawn(
-        WORLD_WIDTH,
-        asset_server,
-        texture_atlases,
-    ));
+    commands
+        .spawn()
+        .insert_bundle(EnemyBundle::pawn(asset_server, texture_atlases));
 }
 
 fn enemy_spawner(
@@ -111,8 +107,8 @@ fn enemy_movement(
         transform.translation.y += velocity.y * time.delta().as_secs_f32();
         transform.translation.x += velocity.x * time.delta().as_secs_f32();
 
-        let is_touching_left_bound = left_bound < -WORLD_WIDTH / 2.0;
-        let is_touching_right_bound = right_bound > WORLD_WIDTH / 2.0;
+        let is_touching_left_bound = left_bound < LEFT_WALL;
+        let is_touching_right_bound = right_bound > RIGHT_WALL;
 
         if (velocity.x < 0.0 && is_touching_left_bound)
             || (velocity.x > 0.0 && is_touching_right_bound)
@@ -127,7 +123,7 @@ fn enemy_movement(
             sprite.index = 0;
         }
 
-        if transform.translation.y > WINDOW_HEIGHT {
+        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 {
             commands.entity(entity).despawn();
         }
     }
@@ -141,15 +137,11 @@ fn player_movement(
     let (mut player_translation, sprite) = query.single_mut();
     let (left_bound, right_bound) = calculate_bounds(&player_translation, sprite.custom_size);
 
-    if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A])
-        && left_bound > -WORLD_WIDTH / 2.0
-    {
+    if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left_bound > LEFT_WALL {
         player_translation.translation.x -= PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
-    if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D])
-        && right_bound < WORLD_WIDTH / 2.0
-    {
+    if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right_bound < RIGHT_WALL {
         player_translation.translation.x += PLAYER_SPEED * time.delta().as_secs_f32();
     }
 }

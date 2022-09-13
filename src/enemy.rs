@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use rand::random;
 
-use crate::components::{Enemy, Gravity, InitialEnemySpeed, Velocity};
+use crate::{
+    components::{Enemy, Gravity, InitialEnemySpeed, Velocity},
+    constants::{LEFT_WALL, RIGHT_WALL},
+};
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
@@ -25,7 +28,6 @@ impl EnemyBundle {
     /// * `trajectory` - Starting trajectory of the enemy used to calculate launch angle of the enemy; x and y values normalized between 0 and 1
     ///
     pub fn new(
-        world_width: f32,
         gravity: f32,
         enemy_speed: f32,
         trajectory: Vec2,
@@ -41,19 +43,28 @@ impl EnemyBundle {
             false => 1.,
         };
 
+        let mut starting_x = RIGHT_WALL;
+
+        if direction > 0. {
+            starting_x = LEFT_WALL;
+        }
+
         let texture_handle = asset_server.load("enemy/red_ninja.png");
         let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 2, 1);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
         Ok(EnemyBundle {
             enemy: Enemy,
-            velocity: Velocity(trajectory * enemy_speed),
+            velocity: Velocity(Vec2::new(
+                trajectory.x * enemy_speed * direction,
+                trajectory.y * enemy_speed,
+            )),
             gravity: Gravity(gravity),
             initial_enemy_speed: InitialEnemySpeed(enemy_speed * trajectory.y),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
-                    translation: Vec3::new(direction * world_width / 2.0, -350.0, 0.0),
+                    translation: Vec3::new(starting_x, -275.0, 0.0),
                     ..default()
                 },
                 ..default()
@@ -62,12 +73,10 @@ impl EnemyBundle {
     }
 
     pub fn pawn(
-        world_width: f32,
         asset_server: Res<AssetServer>,
         texture_atlases: ResMut<Assets<TextureAtlas>>,
     ) -> Self {
         Self::new(
-            world_width,
             1.75,
             300.0,
             Vec2::new(1.0, 1.0),
