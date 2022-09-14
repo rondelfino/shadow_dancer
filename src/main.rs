@@ -9,6 +9,7 @@ use components::*;
 use constants::*;
 use enemy::{EnemyBundle, enemy_animator};
 use player::PlayerBundle;
+use shuriken::{shuriken_movement, ShurikenBundle};
 use walls::{spawn_walls, wall_animator};
 
 struct EnemyCount(u32);
@@ -34,6 +35,7 @@ mod constants;
 mod enemy;
 mod player;
 mod walls;
+mod shuriken;
 // mod settings;
 // mod systems;
 
@@ -139,33 +141,40 @@ fn enemy_movement(
     }
 }
 
-fn player_movement(
+fn play_controls(
     keyboard_input: Res<Input<KeyCode>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
     time: Res<Time>,
     mut query: Query<(&mut Transform, &TextureAtlasSprite), With<Player>>,
 ) {
-    let (mut player_translation, sprite) = query.single_mut();
+    let (mut player_transform, sprite) = query.single_mut();
     let Bounds {
         top,
         right,
         bottom,
         left,
-    } = calculate_bounds(&player_translation, sprite.custom_size);
+    } = calculate_bounds(&player_transform, sprite.custom_size);
 
     if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left > LEFT_WALL {
-        player_translation.translation.x -= PLAYER_SPEED * time.delta().as_secs_f32();
+        player_transform.translation.x -= PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
     if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL {
-        player_translation.translation.x += PLAYER_SPEED * time.delta().as_secs_f32();
+        player_transform.translation.x += PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
     if keyboard_input.pressed(KeyCode::W) && top < TOP_WALL {
-        player_translation.translation.y += PLAYER_SPEED * time.delta().as_secs_f32();
+        player_transform.translation.y += PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
     if keyboard_input.pressed(KeyCode::S) && bottom > BOTTOM_WALL {
-        player_translation.translation.y -= PLAYER_SPEED * time.delta().as_secs_f32();
+        player_transform.translation.y -= PLAYER_SPEED * time.delta().as_secs_f32();
+    }
+
+    if keyboard_input.just_pressed(KeyCode::Down) {
+        commands.spawn().insert_bundle(ShurikenBundle::new(asset_server, texture_atlases, player_transform.translation));
     }
 }
 
@@ -204,8 +213,9 @@ fn main() {
         .add_startup_system(setup)
         .add_startup_system(spawn_walls)
         .add_system(wall_animator)
-        .add_system(player_movement)
+        .add_system(play_controls)
         .add_system(enemy_spawner)
+        .add_system(shuriken_movement)
         .add_system(enemy_animator)
         .add_system(enemy_movement)
         .add_system(gravity_system)

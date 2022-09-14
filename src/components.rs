@@ -17,6 +17,9 @@ pub struct Enemy(pub EnemyState);
 pub struct Wall;
 
 #[derive(Component)]
+pub struct Shuriken;
+
+#[derive(Component)]
 pub struct WallHangingTimer(pub Timer);
 
 #[derive(Component)]
@@ -35,4 +38,4 @@ pub struct InitialEnemySpeed(pub f32);
 pub struct Velocity(pub Vec2);
 
 #[derive(Component, Deref, DerefMut)]
-struct AnimationTimer(Timer);
+pub struct AnimationTimer(pub Timer);
