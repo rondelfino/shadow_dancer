@@ -64,7 +64,7 @@ impl EnemyBundle {
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
-                    translation: Vec3::new(starting_x, -275.0, 0.0),
+                    translation: Vec3::new(starting_x, -275.0, 1.0),
                     ..default()
                 },
                 ..default()
