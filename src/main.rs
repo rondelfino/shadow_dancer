@@ -9,7 +9,7 @@ use components::*;
 use constants::*;
 use enemy::EnemyBundle;
 use player::PlayerBundle;
-use walls::spawn_walls;
+use walls::{spawn_walls, wall_animator};
 
 struct EnemyCount(u32);
 
@@ -173,6 +173,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_startup_system(spawn_walls)
+        .add_system(wall_animator)
         .add_system(player_movement)
         .add_system(enemy_spawner)
         .add_system(enemy_movement)
