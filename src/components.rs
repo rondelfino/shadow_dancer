@@ -1,13 +1,23 @@
 use bevy::prelude::*;
 
+#[derive(PartialEq)]
+pub enum EnemyState {
+    Airborne,
+    WallHanging,
+    Dead,
+}
+
 #[derive(Component)]
 pub struct Player;
 
 #[derive(Component)]
-pub struct Enemy;
+pub struct Enemy(pub EnemyState);
 
 #[derive(Component)]
 pub struct Wall;
+
+#[derive(Component)]
+pub struct WallHangingTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Dimensions(pub Vec2);
@@ -26,4 +36,3 @@ pub struct Velocity(pub Vec2);
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
-

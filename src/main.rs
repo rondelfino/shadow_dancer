@@ -7,7 +7,7 @@ use bevy::{
 };
 use components::*;
 use constants::*;
-use enemy::EnemyBundle;
+use enemy::{EnemyBundle, enemy_animator};
 use player::PlayerBundle;
 use walls::{spawn_walls, wall_animator};
 
@@ -102,18 +102,18 @@ fn enemy_movement(
             Entity,
             &mut Transform,
             &mut Velocity,
-            &mut TextureAtlasSprite,
             &InitialEnemySpeed,
+            &mut WallHangingTimer,
+            &mut Enemy,
         ),
         With<Enemy>,
     >,
     mut commands: Commands,
 ) {
-    for (entity, mut transform, mut velocity, mut sprite, initial_enemy_speed) in query.iter_mut() {
-        let Bounds { right, left, .. } = calculate_bounds(&transform, sprite.custom_size);
-
-        transform.translation.y += velocity.y * time.delta().as_secs_f32();
-        transform.translation.x += velocity.x * time.delta().as_secs_f32();
+    for (entity, mut transform, mut velocity, initial_enemy_speed, mut wall_hanging_timer, mut enemy) in
+        query.iter_mut()
+    {
+        let Bounds { right, left, .. } = calculate_bounds(&transform, None);
 
         let is_touching_left_bound = left < LEFT_WALL;
         let is_touching_right_bound = right > RIGHT_WALL;
@@ -121,14 +121,16 @@ fn enemy_movement(
         if (velocity.x < 0.0 && is_touching_left_bound)
             || (velocity.x > 0.0 && is_touching_right_bound)
         {
-            velocity.x = velocity.x * -1.0;
-            velocity.y = initial_enemy_speed.0;
-        }
-
-        if velocity.x < 0.0 {
-            sprite.index = 1;
+            if wall_hanging_timer.0.tick(time.delta()).just_finished() {
+                velocity.x = velocity.x * -1.0;
+                velocity.y = initial_enemy_speed.0;
+                enemy.0 = EnemyState::Airborne;
+            } else {
+                enemy.0 = EnemyState::WallHanging;
+            }
         } else {
-            sprite.index = 0;
+            transform.translation.y += velocity.y * time.delta().as_secs_f32();
+            transform.translation.x += velocity.x * time.delta().as_secs_f32();
         }
 
         if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 {
@@ -204,6 +206,7 @@ fn main() {
         .add_system(wall_animator)
         .add_system(player_movement)
         .add_system(enemy_spawner)
+        .add_system(enemy_animator)
         .add_system(enemy_movement)
         .add_system(gravity_system)
         .run();

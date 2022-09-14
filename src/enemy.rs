@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use rand::random;
 
 use crate::{
-    components::{Enemy, Gravity, InitialEnemySpeed, Velocity},
+    components::{Enemy, EnemyState, Gravity, InitialEnemySpeed, Velocity, WallHangingTimer},
     constants::{LEFT_WALL, RIGHT_WALL},
 };
 
@@ -12,6 +12,7 @@ pub struct EnemyBundle {
     velocity: Velocity,
     gravity: Gravity,
     initial_enemy_speed: InitialEnemySpeed,
+    wall_hanging_timer: WallHangingTimer,
     #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
@@ -49,11 +50,11 @@ impl EnemyBundle {
         }
 
         let texture_handle = asset_server.load("enemy/red_ninja.png");
-        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 2, 1);
+        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
         Ok(EnemyBundle {
-            enemy: Enemy,
+            enemy: Enemy(EnemyState::Airborne),
             velocity: Velocity(Vec2::new(
                 trajectory.x * enemy_speed * direction,
                 trajectory.y * enemy_speed,
@@ -68,6 +69,7 @@ impl EnemyBundle {
                 },
                 ..default()
             },
+            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, true))
         })
     }
 
@@ -83,5 +85,23 @@ impl EnemyBundle {
             texture_atlases,
         )
         .unwrap()
+    }
+}
+
+pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSprite), With<Enemy>>) {
+    for (enemy, velocity, mut sprite) in query.iter_mut() {
+        if enemy.0 == EnemyState::WallHanging {
+            if velocity.x > 0.0 {
+                sprite.index = 3;
+            } else {
+                sprite.index = 2;
+            }
+        } else if enemy.0 == EnemyState::Airborne {
+            if velocity.x < 0.0 {
+                sprite.index = 1;
+            } else {
+                sprite.index = 0;
+            }
+        }
     }
 }
