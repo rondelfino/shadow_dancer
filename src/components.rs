@@ -6,9 +6,14 @@ pub enum EnemyState {
     WallHanging,
     Dead,
 }
+#[derive(PartialEq)]
+pub enum PlayerState {
+    Falling,
+    Attacking,
+}
 
 #[derive(Component)]
-pub struct Player;
+pub struct Player(pub PlayerState);
 
 #[derive(Component)]
 pub struct Enemy(pub EnemyState);
@@ -21,6 +26,9 @@ pub struct Shuriken;
 
 #[derive(Component)]
 pub struct WallHangingTimer(pub Timer);
+
+#[derive(Component)]
+pub struct AttackingTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Dimensions(pub Vec2);

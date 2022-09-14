@@ -8,7 +8,7 @@ use bevy::{
 use components::*;
 use constants::*;
 use enemy::{EnemyBundle, enemy_animator};
-use player::PlayerBundle;
+use player::{PlayerBundle, player_attacking_system};
 use shuriken::{shuriken_movement, ShurikenBundle};
 use walls::{spawn_walls, wall_animator};
 
@@ -143,13 +143,11 @@ fn enemy_movement(
 
 fn play_controls(
     keyboard_input: Res<Input<KeyCode>>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    texture_atlases: ResMut<Assets<TextureAtlas>>,
+
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &TextureAtlasSprite), With<Player>>,
+    mut query: Query<(&mut Player, &mut Transform, &TextureAtlasSprite), With<Player>>,
 ) {
-    let (mut player_transform, sprite) = query.single_mut();
+    let (mut player, mut player_transform, sprite) = query.single_mut();
     let Bounds {
         top,
         right,
@@ -173,8 +171,8 @@ fn play_controls(
         player_transform.translation.y -= PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
-    if keyboard_input.just_pressed(KeyCode::Down) {
-        commands.spawn().insert_bundle(ShurikenBundle::new(asset_server, texture_atlases, player_transform.translation));
+    if keyboard_input.just_pressed(KeyCode::Down) && player.0 == PlayerState::Falling {
+       player.0 = PlayerState::Attacking;
     }
 }
 
@@ -216,6 +214,7 @@ fn main() {
         .add_system(play_controls)
         .add_system(enemy_spawner)
         .add_system(shuriken_movement)
+        .add_system(player_attacking_system)
         .add_system(enemy_animator)
         .add_system(enemy_movement)
         .add_system(gravity_system)

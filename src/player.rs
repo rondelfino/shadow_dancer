@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 
-use crate::components::Player;
+use crate::{
+    components::{AttackingTimer, Player, PlayerState},
+    shuriken::ShurikenBundle,
+};
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     player: Player,
+    attacking_timer: AttackingTimer,
     #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
@@ -18,7 +22,8 @@ impl PlayerBundle {
         let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(45.0, 45.0), 4, 1);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         PlayerBundle {
-            player: Player,
+            player: Player(PlayerState::Falling),
+            attacking_timer: AttackingTimer(Timer::from_seconds(0.025, true)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
@@ -27,6 +32,42 @@ impl PlayerBundle {
                 },
                 ..default()
             },
+        }
+    }
+}
+
+pub fn player_attacking_system(
+    time: Res<Time>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut query: Query<
+        (
+            &mut Player,
+            &mut AttackingTimer,
+            &Transform,
+            &mut TextureAtlasSprite,
+        ),
+        With<Player>,
+    >,
+) {
+    let (mut player, mut attacking_timer, transform, mut sprite) = query.single_mut();
+
+    if player.0 == PlayerState::Attacking {
+        if attacking_timer.0.tick(time.delta()).just_finished() {
+            sprite.index = (sprite.index + 1) % 4;
+
+            if sprite.index == 3 {
+                commands.spawn().insert_bundle(ShurikenBundle::new(
+                    asset_server,
+                    texture_atlases,
+                    transform.translation,
+                ));
+            }
+
+            if sprite.index == 0 {
+                player.0 = PlayerState::Falling
+            }
         }
     }
 }
