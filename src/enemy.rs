@@ -21,7 +21,6 @@ impl EnemyBundle {
     ///
     /// # Arguments
     ///
-    /// * `world_width` - The horizontal size of the world in pixels
     /// * `gravity` - Downward force acting on the spawned enemy
     /// * `enemy_speed` - Starting speed of the enemy
     /// * `initial_enemy_speed` - The force used to calculate the speed of an enemy when changing direction
