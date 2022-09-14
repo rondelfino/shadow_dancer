@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::Wall,
-    constants::{LEFT_WALL, RIGHT_WALL},
+    constants::{LEFT_WALL, RIGHT_WALL, FALLING_SPEED},
     Dimensions,
 };
 
@@ -81,9 +81,8 @@ pub fn spawn_walls(
 }
 
 pub fn wall_animator(mut query: Query<(&mut Transform, &Dimensions), With<Wall>>, time: Res<Time>) {
-    let wall_speed = 800.0;
     for (mut wall_transform, wall_dimensions) in query.iter_mut() {
-        wall_transform.translation.y += wall_speed * time.delta_seconds();
+        wall_transform.translation.y += FALLING_SPEED * time.delta_seconds();
 
         //repeat wall motion by moving offscreen top wall to the bottom
         if wall_transform.translation.y > 3.0 * wall_dimensions.0.y {

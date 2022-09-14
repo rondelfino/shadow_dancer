@@ -25,7 +25,7 @@ impl ShurikenBundle {
             shuriken: Shuriken,
             animation_timer: AnimationTimer(Timer::from_seconds(2.0, true)),
             velocity: Velocity(Vec2::new(0.0, -400.0)),
-            hitbox: HitBox(Vec2::new(12.0, 12.0)),
+            hitbox: HitBox(Vec2::new(8.0, 8.0)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {

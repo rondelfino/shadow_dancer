@@ -73,7 +73,7 @@ impl EnemyBundle {
                 ..default()
             },
             wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, true)),
-            hitbox: HitBox(Vec2::new(100.0, 100.0)),
+            hitbox: HitBox(Vec2::new(35.0, 60.0)),
         })
     }
 

@@ -8,6 +8,7 @@ use bevy::{
 use collision::collision_system;
 use components::*;
 use constants::*;
+use death_effect::death_effect_animator;
 use enemy::{EnemyBundle, enemy_animator};
 use player::{PlayerBundle, player_attacking_system};
 use shuriken::{shuriken_movement, ShurikenBundle, shuriken_animator};
@@ -38,6 +39,7 @@ mod player;
 mod walls;
 mod shuriken;
 mod collision;
+mod death_effect;
 // mod settings;
 // mod systems;
 
@@ -137,7 +139,7 @@ fn enemy_movement(
             transform.translation.x += velocity.x * time.delta().as_secs_f32();
         }
 
-        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 {
+        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 && enemy.0 != EnemyState::Dead{
             commands.entity(entity).despawn();
         }
     }
@@ -222,5 +224,6 @@ fn main() {
         .add_system(enemy_movement)
         .add_system(gravity_system)
         .add_system(collision_system)
+        .add_system(death_effect_animator)
         .run();
 }

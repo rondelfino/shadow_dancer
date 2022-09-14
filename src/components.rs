@@ -47,3 +47,6 @@ pub struct Velocity(pub Vec2);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
+
+#[derive(Component)]
+pub struct Effect;
