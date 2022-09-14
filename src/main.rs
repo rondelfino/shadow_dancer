@@ -9,6 +9,7 @@ use components::*;
 use constants::*;
 use enemy::EnemyBundle;
 use player::PlayerBundle;
+use walls::spawn_walls;
 
 struct EnemyCount(u32);
 
@@ -25,6 +26,7 @@ mod components;
 mod constants;
 mod enemy;
 mod player;
+mod walls;
 // mod settings;
 // mod systems;
 
@@ -59,7 +61,6 @@ fn spawn_player(
 ) {
     commands
         .spawn()
-        .insert(Player)
         .insert_bundle(PlayerBundle::new(asset_server, texture_atlases));
 }
 
@@ -171,6 +172,7 @@ fn main() {
         .insert_resource(EnemyCount(0))
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
+        .add_startup_system(spawn_walls)
         .add_system(player_movement)
         .add_system(enemy_spawner)
         .add_system(enemy_movement)
