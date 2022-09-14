@@ -22,7 +22,7 @@ impl ShurikenBundle {
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         ShurikenBundle {
             shuriken: Shuriken,
-            velocity: Velocity(Vec2::new(0.0, -500.0)),
+            velocity: Velocity(Vec2::new(0.0, -400.0)),
             animation_timer: AnimationTimer(Timer::from_seconds(2.0, true)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
@@ -38,7 +38,7 @@ impl ShurikenBundle {
 
 pub fn shuriken_movement(
     time: Res<Time>,
-    mut commands: Commands, 
+    mut commands: Commands,
     mut query: Query<(Entity, &mut Transform, &Velocity), With<Shuriken>>,
 ) {
     for (entity, mut transform, velocity) in query.iter_mut() {
@@ -50,3 +50,8 @@ pub fn shuriken_movement(
     }
 }
 
+pub fn shuriken_animator(time: Res<Time>, mut query: Query<(&mut Transform), With<Shuriken>>) {
+    for (mut transform) in query.iter_mut() {
+        transform.rotate_z(f32::to_radians(1060.0) * time.delta_seconds());
+    }
+}

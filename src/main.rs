@@ -9,7 +9,7 @@ use components::*;
 use constants::*;
 use enemy::{EnemyBundle, enemy_animator};
 use player::{PlayerBundle, player_attacking_system};
-use shuriken::{shuriken_movement, ShurikenBundle};
+use shuriken::{shuriken_movement, ShurikenBundle, shuriken_animator};
 use walls::{spawn_walls, wall_animator};
 
 struct EnemyCount(u32);
@@ -214,6 +214,7 @@ fn main() {
         .add_system(play_controls)
         .add_system(enemy_spawner)
         .add_system(shuriken_movement)
+        .add_system(shuriken_animator)
         .add_system(player_attacking_system)
         .add_system(enemy_animator)
         .add_system(enemy_movement)
