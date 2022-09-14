@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use rand::random;
 
 use crate::{
-    components::{Enemy, EnemyState, Gravity, InitialEnemySpeed, Velocity, WallHangingTimer},
+    components::{
+        Enemy, EnemyState, Gravity, HitBox, InitialEnemySpeed, Velocity, WallHangingTimer,
+    },
     constants::{LEFT_WALL, RIGHT_WALL},
 };
 
@@ -13,6 +15,7 @@ pub struct EnemyBundle {
     gravity: Gravity,
     initial_enemy_speed: InitialEnemySpeed,
     wall_hanging_timer: WallHangingTimer,
+    hitbox: HitBox,
     #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
@@ -69,7 +72,8 @@ impl EnemyBundle {
                 },
                 ..default()
             },
-            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, true))
+            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, true)),
+            hitbox: HitBox(Vec2::new(100.0, 100.0)),
         })
     }
 

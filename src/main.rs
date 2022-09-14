@@ -5,6 +5,7 @@ use bevy::{
         texture::ImageSettings,
     },
 };
+use collision::collision_system;
 use components::*;
 use constants::*;
 use enemy::{EnemyBundle, enemy_animator};
@@ -36,6 +37,7 @@ mod enemy;
 mod player;
 mod walls;
 mod shuriken;
+mod collision;
 // mod settings;
 // mod systems;
 
@@ -219,5 +221,6 @@ fn main() {
         .add_system(enemy_animator)
         .add_system(enemy_movement)
         .add_system(gravity_system)
+        .add_system(collision_system)
         .run();
 }
