@@ -7,6 +7,9 @@ pub struct Player;
 pub struct Enemy;
 
 #[derive(Component)]
+pub struct Wall;
+
+#[derive(Component)]
 pub struct Gravity(pub f32);
 
 #[derive(Component)]
