@@ -10,6 +10,12 @@ pub struct Enemy;
 pub struct Wall;
 
 #[derive(Component)]
+pub struct Dimensions(pub Vec2);
+
+#[derive(Component)]
+pub struct HitBox(pub Vec2);
+
+#[derive(Component)]
 pub struct Gravity(pub f32);
 
 #[derive(Component)]
