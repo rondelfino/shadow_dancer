@@ -15,6 +15,13 @@ struct EnemyCount(u32);
 
 struct SpawnTimer(Timer);
 
+struct Bounds {
+    top: f32,
+    right: f32,
+    bottom: f32,
+    left: f32,
+}
+
 enum GameState {
     Splash,
     MainMenu,
@@ -103,13 +110,13 @@ fn enemy_movement(
     mut commands: Commands,
 ) {
     for (entity, mut transform, mut velocity, mut sprite, initial_enemy_speed) in query.iter_mut() {
-        let (left_bound, right_bound) = calculate_bounds(&transform, sprite.custom_size);
+        let Bounds { right, left, .. } = calculate_bounds(&transform, sprite.custom_size);
 
         transform.translation.y += velocity.y * time.delta().as_secs_f32();
         transform.translation.x += velocity.x * time.delta().as_secs_f32();
 
-        let is_touching_left_bound = left_bound < LEFT_WALL;
-        let is_touching_right_bound = right_bound > RIGHT_WALL;
+        let is_touching_left_bound = left < LEFT_WALL;
+        let is_touching_right_bound = right > RIGHT_WALL;
 
         if (velocity.x < 0.0 && is_touching_left_bound)
             || (velocity.x > 0.0 && is_touching_right_bound)
@@ -136,21 +143,42 @@ fn player_movement(
     mut query: Query<(&mut Transform, &TextureAtlasSprite), With<Player>>,
 ) {
     let (mut player_translation, sprite) = query.single_mut();
-    let (left_bound, right_bound) = calculate_bounds(&player_translation, sprite.custom_size);
+    let Bounds {
+        top,
+        right,
+        bottom,
+        left,
+    } = calculate_bounds(&player_translation, sprite.custom_size);
 
-    if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left_bound > LEFT_WALL {
+    if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left > LEFT_WALL {
         player_translation.translation.x -= PLAYER_SPEED * time.delta().as_secs_f32();
     }
 
-    if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right_bound < RIGHT_WALL {
+    if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL {
         player_translation.translation.x += PLAYER_SPEED * time.delta().as_secs_f32();
+    }
+
+    if keyboard_input.pressed(KeyCode::W) && top < TOP_WALL {
+        player_translation.translation.y += PLAYER_SPEED * time.delta().as_secs_f32();
+    }
+
+    if keyboard_input.pressed(KeyCode::S) && bottom > BOTTOM_WALL {
+        player_translation.translation.y -= PLAYER_SPEED * time.delta().as_secs_f32();
     }
 }
 
-fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> (f32, f32) {
-    let left_bound = transform.translation.x - size.unwrap_or_default().x / 2.;
-    let right_bound = transform.translation.x + size.unwrap_or_default().x / 2.;
-    (left_bound, right_bound)
+fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
+    let left_bound = transform.translation.x - size.unwrap_or_default().x / 2.0;
+    let right_bound = transform.translation.x + size.unwrap_or_default().x / 2.0;
+    let top_bound = transform.translation.y + size.unwrap_or_default().y / 2.0;
+    let bottom_bound = transform.translation.y - size.unwrap_or_default().y / 2.0;
+
+    Bounds {
+        top: top_bound,
+        right: right_bound,
+        bottom: bottom_bound,
+        left: left_bound,
+    }
 }
 
 fn gravity_system(mut query: Query<(&mut Velocity, &mut Gravity), With<Enemy>>) {
