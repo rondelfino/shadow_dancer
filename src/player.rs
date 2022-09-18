@@ -53,21 +53,23 @@ pub fn player_attacking_system(
 ) {
     let (mut player, mut attacking_timer, transform, mut sprite) = query.single_mut();
 
-    if player.0 == PlayerState::Attacking {
-        if attacking_timer.0.tick(time.delta()).just_finished() {
-            sprite.index = (sprite.index + 1) % 4;
+    if player.0 != PlayerState::Attacking {
+        return;
+    }
 
-            if sprite.index == 3 {
-                commands.spawn().insert_bundle(ShurikenBundle::new(
-                    asset_server,
-                    texture_atlases,
-                    transform.translation,
-                ));
-            }
+    if attacking_timer.0.tick(time.delta()).just_finished() {
+        sprite.index = (sprite.index + 1) % 4;
 
-            if sprite.index == 0 {
-                player.0 = PlayerState::Falling
-            }
+        if sprite.index == 3 {
+            commands.spawn().insert_bundle(ShurikenBundle::new(
+                asset_server,
+                texture_atlases,
+                transform.translation,
+            ));
+        }
+
+        if sprite.index == 0 {
+            player.0 = PlayerState::Falling
         }
     }
 }

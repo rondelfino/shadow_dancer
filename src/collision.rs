@@ -17,10 +17,10 @@ pub fn collision_system(
     let death_effect_atlas_handle = texture_atlases.add(texture_atlas);
 
     for (shuriken_entity, shuriken_transform, shuriken_hitbox) in shuriken_query.iter() {
-        let shurkien_scale = Vec2::from(shuriken_transform.scale.xy());
+        let shurkien_scale = shuriken_transform.scale.xy();
 
         for (enemy_entity, enemy_transform, enemy_hitbox, mut enemy) in enemy_query.iter_mut() {
-            let enemy_scale = Vec2::from(enemy_transform.scale.xy());
+            let enemy_scale = enemy_transform.scale.xy();
 
             let collision = collide(
                 shuriken_transform.translation,
@@ -29,7 +29,7 @@ pub fn collision_system(
                 enemy_hitbox.0 * enemy_scale,
             );
 
-            if let Some(_) = collision {
+            if collision.is_some() {
                 commands.entity(enemy_entity).despawn();
 
                 commands.entity(shuriken_entity).despawn();

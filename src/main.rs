@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use bevy::{
     prelude::*,
     render::{
@@ -9,9 +10,9 @@ use collision::collision_system;
 use components::*;
 use constants::*;
 use death_effect::death_effect_animator;
-use enemy::{EnemyBundle, enemy_animator};
-use player::{PlayerBundle, player_attacking_system};
-use shuriken::{shuriken_movement, ShurikenBundle, shuriken_animator};
+use enemy::{enemy_animator, EnemyBundle};
+use player::{player_attacking_system, PlayerBundle};
+use shuriken::{shuriken_animator, shuriken_movement};
 use walls::{spawn_walls, wall_animator};
 
 struct EnemyCount(u32);
@@ -25,21 +26,21 @@ struct Bounds {
     left: f32,
 }
 
-enum GameState {
-    Splash,
-    MainMenu,
-    InGame,
-    Paused,
-}
+// enum GameState {
+//     Splash,
+//     MainMenu,
+//     InGame,
+//     Paused,
+// }
 
+mod collision;
 mod components;
 mod constants;
+mod death_effect;
 mod enemy;
 mod player;
-mod walls;
 mod shuriken;
-mod collision;
-mod death_effect;
+mod walls;
 // mod settings;
 // mod systems;
 
@@ -51,18 +52,21 @@ fn setup(
     let half_height = WORLD_HEIGHT / 2.0;
     let half_width = WORLD_WIDTH / 2.0;
 
-    let mut camera_bundle = Camera2dBundle::default();
-    camera_bundle.projection = OrthographicProjection {
-        far: 1000.0,
-        depth_calculation: DepthCalculation::ZDifference,
-        scaling_mode: ScalingMode::None,
-        scale: 1.0,
-        left: -half_width,
-        right: half_width,
-        top: half_height,
-        bottom: -half_height,
+    let camera_bundle = Camera2dBundle {
+        projection: OrthographicProjection {
+            far: 1000.0,
+            depth_calculation: DepthCalculation::ZDifference,
+            scaling_mode: ScalingMode::None,
+            scale: 1.0,
+            left: -half_width,
+            right: half_width,
+            top: half_height,
+            bottom: -half_height,
+            ..Default::default()
+        },
         ..Default::default()
     };
+
     commands.spawn_bundle(camera_bundle);
     spawn_player(&mut commands, asset_server, texture_atlases);
 }
@@ -116,8 +120,14 @@ fn enemy_movement(
     >,
     mut commands: Commands,
 ) {
-    for (entity, mut transform, mut velocity, initial_enemy_speed, mut wall_hanging_timer, mut enemy) in
-        query.iter_mut()
+    for (
+        entity,
+        mut transform,
+        mut velocity,
+        initial_enemy_speed,
+        mut wall_hanging_timer,
+        mut enemy,
+    ) in query.iter_mut()
     {
         let Bounds { right, left, .. } = calculate_bounds(&transform, None);
 
@@ -128,7 +138,7 @@ fn enemy_movement(
             || (velocity.x > 0.0 && is_touching_right_bound)
         {
             if wall_hanging_timer.0.tick(time.delta()).just_finished() {
-                velocity.x = velocity.x * -1.0;
+                velocity.x *= -1.0;
                 velocity.y = initial_enemy_speed.0;
                 enemy.0 = EnemyState::Airborne;
             } else {
@@ -139,7 +149,7 @@ fn enemy_movement(
             transform.translation.x += velocity.x * time.delta().as_secs_f32();
         }
 
-        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 && enemy.0 != EnemyState::Dead{
+        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 && enemy.0 != EnemyState::Dead {
             commands.entity(entity).despawn();
         }
     }
@@ -176,7 +186,7 @@ fn play_controls(
     }
 
     if keyboard_input.just_pressed(KeyCode::Down) && player.0 == PlayerState::Falling {
-       player.0 = PlayerState::Attacking;
+        player.0 = PlayerState::Attacking;
     }
 }
 

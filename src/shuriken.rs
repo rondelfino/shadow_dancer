@@ -52,7 +52,7 @@ pub fn shuriken_movement(
     }
 }
 
-pub fn shuriken_animator(time: Res<Time>, mut query: Query<(&mut Transform), With<Shuriken>>) {
+pub fn shuriken_animator(time: Res<Time>, mut query: Query<&mut Transform, With<Shuriken>>) {
     for mut transform in query.iter_mut() {
         transform.rotate_z(f32::to_radians(1060.0) * time.delta_seconds());
     }
