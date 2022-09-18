@@ -13,6 +13,9 @@ pub enum PlayerState {
 }
 
 #[derive(Component)]
+pub struct MarkDespawn;
+
+#[derive(Component)]
 pub struct Player(pub PlayerState);
 
 #[derive(Component)]

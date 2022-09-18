@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{AnimationTimer, Effect, Velocity},
+    components::{AnimationTimer, Effect, Velocity, MarkDespawn},
     constants::FALLING_SPEED,
 };
 
@@ -49,11 +49,11 @@ pub fn death_effect_animator(
     for (entity, mut sprite, mut animation_timer, mut transform, velocity) in query.iter_mut() {
         transform.translation.y += velocity.0.y * time.delta_seconds();
 
-        if animation_timer.tick(time.delta()).just_finished() {
+        if animation_timer.tick(time.delta()).just_finished() && sprite.index < 3 {
             sprite.index += 1;
 
             if sprite.index > 3 {
-                commands.entity(entity).despawn();
+                commands.entity(entity).insert(MarkDespawn);
             }
         }
     }

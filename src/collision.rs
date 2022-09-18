@@ -1,7 +1,7 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::collide_aabb::collide};
 
 use crate::{
-    components::{Enemy, EnemyState, HitBox, Shuriken},
+    components::{Enemy, EnemyState, HitBox, Shuriken, MarkDespawn},
     death_effect::DeathEffectBundle,
 };
 
@@ -30,9 +30,8 @@ pub fn collision_system(
             );
 
             if collision.is_some() {
-                commands.entity(enemy_entity).despawn();
-
-                commands.entity(shuriken_entity).despawn();
+                commands.entity(enemy_entity).insert(MarkDespawn);
+                commands.entity(shuriken_entity).insert(MarkDespawn);
 
                 commands.spawn().insert_bundle(DeathEffectBundle::new(
                     death_effect_atlas_handle.clone(),
@@ -43,4 +42,6 @@ pub fn collision_system(
             }
         }
     }
+
+
 }

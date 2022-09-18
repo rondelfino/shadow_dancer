@@ -26,6 +26,12 @@ struct Bounds {
     left: f32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
+enum GameSystemLabel {
+    Core,
+    Cleanup,
+}
+
 // enum GameState {
 //     Splash,
 //     MainMenu,
@@ -150,7 +156,7 @@ fn enemy_movement(
         }
 
         if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 && enemy.0 != EnemyState::Dead {
-            commands.entity(entity).despawn();
+            commands.entity(entity).insert(MarkDespawn);
         }
     }
 }
@@ -210,6 +216,12 @@ fn gravity_system(mut query: Query<(&mut Velocity, &mut Gravity), With<Enemy>>) 
     }
 }
 
+fn despawner(mut commands: Commands, query: Query<Entity, With<MarkDespawn>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
@@ -224,16 +236,21 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_startup_system(spawn_walls)
-        .add_system(wall_animator)
-        .add_system(play_controls)
-        .add_system(enemy_spawner)
-        .add_system(shuriken_movement)
-        .add_system(shuriken_animator)
-        .add_system(player_attacking_system)
-        .add_system(enemy_animator)
-        .add_system(enemy_movement)
-        .add_system(gravity_system)
-        .add_system(collision_system)
-        .add_system(death_effect_animator)
+        .add_system(
+            despawner
+                .after(GameSystemLabel::Core)
+                .label(GameSystemLabel::Cleanup),
+        )
+        .add_system(wall_animator.label(GameSystemLabel::Core))
+        .add_system(play_controls.label(GameSystemLabel::Core))
+        .add_system(enemy_spawner.label(GameSystemLabel::Core))
+        .add_system(shuriken_movement.label(GameSystemLabel::Core))
+        .add_system(shuriken_animator.label(GameSystemLabel::Core))
+        .add_system(player_attacking_system.label(GameSystemLabel::Core))
+        .add_system(enemy_animator.label(GameSystemLabel::Core))
+        .add_system(enemy_movement.label(GameSystemLabel::Core))
+        .add_system(gravity_system.label(GameSystemLabel::Core))
+        .add_system(collision_system.label(GameSystemLabel::Core))
+        .add_system(death_effect_animator.label(GameSystemLabel::Core))
         .run();
 }

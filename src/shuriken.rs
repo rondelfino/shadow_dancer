@@ -47,7 +47,7 @@ pub fn shuriken_movement(
         transform.translation.y += velocity.y * time.delta().as_secs_f32();
         transform.translation.x += velocity.x * time.delta().as_secs_f32();
         if transform.translation.y < (-WORLD_HEIGHT / 2.0) - 100.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).insert(MarkDespawn);
         }
     }
 }
