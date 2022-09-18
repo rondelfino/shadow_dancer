@@ -1,7 +1,7 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::collide_aabb::collide};
 
 use crate::{
-    components::{Enemy, EnemyState, HitBox, Shuriken},
+    components::{Enemy, EnemyState, HitBox, Shuriken, MarkDespawn},
     death_effect::DeathEffectBundle,
 };
 
@@ -17,10 +17,10 @@ pub fn collision_system(
     let death_effect_atlas_handle = texture_atlases.add(texture_atlas);
 
     for (shuriken_entity, shuriken_transform, shuriken_hitbox) in shuriken_query.iter() {
-        let shurkien_scale = Vec2::from(shuriken_transform.scale.xy());
+        let shurkien_scale = shuriken_transform.scale.xy();
 
         for (enemy_entity, enemy_transform, enemy_hitbox, mut enemy) in enemy_query.iter_mut() {
-            let enemy_scale = Vec2::from(enemy_transform.scale.xy());
+            let enemy_scale = enemy_transform.scale.xy();
 
             let collision = collide(
                 shuriken_transform.translation,
@@ -29,10 +29,9 @@ pub fn collision_system(
                 enemy_hitbox.0 * enemy_scale,
             );
 
-            if let Some(_) = collision {
-                commands.entity(enemy_entity).despawn();
-
-                commands.entity(shuriken_entity).despawn();
+            if collision.is_some() {
+                commands.entity(enemy_entity).insert(MarkDespawn);
+                commands.entity(shuriken_entity).insert(MarkDespawn);
 
                 commands.spawn().insert_bundle(DeathEffectBundle::new(
                     death_effect_atlas_handle.clone(),
@@ -43,4 +42,6 @@ pub fn collision_system(
             }
         }
     }
+
+
 }

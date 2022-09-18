@@ -1,16 +1,19 @@
 use bevy::prelude::*;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum EnemyState {
     Airborne,
     WallHanging,
     Dead,
 }
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum PlayerState {
     Falling,
     Attacking,
 }
+
+#[derive(Component)]
+pub struct MarkDespawn;
 
 #[derive(Component)]
 pub struct Player(pub PlayerState);
