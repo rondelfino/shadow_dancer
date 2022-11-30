@@ -16,7 +16,6 @@ pub struct EnemyBundle {
     initial_enemy_speed: InitialEnemySpeed,
     wall_hanging_timer: WallHangingTimer,
     hitbox: HitBox,
-    #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
 
@@ -53,7 +52,7 @@ impl EnemyBundle {
         }
 
         let texture_handle = asset_server.load("enemy/red_ninja.png");
-        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1);
+        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
         Ok(EnemyBundle {
@@ -72,7 +71,7 @@ impl EnemyBundle {
                 },
                 ..default()
             },
-            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, true)),
+            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             hitbox: HitBox(Vec2::new(35.0, 60.0)),
         })
     }

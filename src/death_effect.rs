@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{AnimationTimer, Effect, Velocity, MarkDespawn},
+    components::{AnimationTimer, Effect, MarkDespawn, Velocity},
     constants::FALLING_SPEED,
 };
 
@@ -10,7 +10,6 @@ pub struct DeathEffectBundle {
     effect: Effect,
     animation_timer: AnimationTimer,
     velocity: Velocity,
-    #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
 
@@ -18,7 +17,7 @@ impl DeathEffectBundle {
     pub fn new(texture_atlas_handle: Handle<TextureAtlas>, starting_pos: Vec3) -> Self {
         DeathEffectBundle {
             effect: Effect,
-            animation_timer: AnimationTimer(Timer::from_seconds(0.1, true)),
+            animation_timer: AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             velocity: Velocity(Vec2::new(0.0, FALLING_SPEED)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,

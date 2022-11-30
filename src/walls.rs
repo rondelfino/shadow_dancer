@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::Wall,
-    constants::{LEFT_WALL, RIGHT_WALL, FALLING_SPEED},
+    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
     Dimensions,
 };
 
@@ -10,7 +10,6 @@ use crate::{
 pub struct WallBundle {
     wall: Wall,
     dimensions: Dimensions,
-    #[bundle]
     sprite_bundle: SpriteSheetBundle,
 }
 
@@ -38,7 +37,7 @@ impl WallBundle {
 
     pub fn right_wall(texture_atlas_handle: Handle<TextureAtlas>, y_pos: f32) -> Self {
         let dimensions = Dimensions(Vec2::new(48.0, 224.0));
-        
+
         let mut sprite_bundle = SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
@@ -64,16 +63,16 @@ pub fn spawn_walls(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let texture_handle = asset_server.load("objects/walls.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48.0, 224.0), 2, 1);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48.0, 224.0), 2, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
     //spawns walls that span offscreen
     for i in -2..=2 {
-        commands.spawn().insert_bundle(WallBundle::left_wall(
+        commands.spawn_empty().insert(WallBundle::left_wall(
             texture_atlas_handle.clone(),
             i as f32 * 224.0,
         ));
-        commands.spawn().insert_bundle(WallBundle::right_wall(
+        commands.spawn_empty().insert(WallBundle::right_wall(
             texture_atlas_handle.clone(),
             i as f32 * 224.0,
         ));
