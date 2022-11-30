@@ -1,7 +1,8 @@
 use bevy::{math::Vec3Swizzles, prelude::*, sprite::collide_aabb::collide};
 
 use crate::{
-    components::{Enemy, EnemyState, HitBox, Shuriken, MarkDespawn},
+    audio::SFXEvents,
+    components::{Enemy, EnemyState, HitBox, MarkDespawn, Shuriken},
     death_effect::DeathEffectBundle,
 };
 
@@ -11,9 +12,12 @@ pub fn collision_system(
     mut commands: Commands,
     shuriken_query: Query<(Entity, &Transform, &HitBox), With<Shuriken>>,
     mut enemy_query: Query<(Entity, &Transform, &HitBox, &mut Enemy), With<Enemy>>,
+    mut sfx_events: EventWriter<SFXEvents>,
 ) {
     let texture_handle = asset_server.load("effects/death.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 95.0), 4, 1);
+
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 95.0), 4, 1, None, None);
     let death_effect_atlas_handle = texture_atlases.add(texture_atlas);
 
     for (shuriken_entity, shuriken_transform, shuriken_hitbox) in shuriken_query.iter() {
@@ -30,18 +34,20 @@ pub fn collision_system(
             );
 
             if collision.is_some() {
+                sfx_events.send(SFXEvents::CollisionSound);
+
                 commands.entity(enemy_entity).insert(MarkDespawn);
                 commands.entity(shuriken_entity).insert(MarkDespawn);
 
-                commands.spawn().insert_bundle(DeathEffectBundle::new(
+                commands.spawn_empty().insert(DeathEffectBundle::new(
                     death_effect_atlas_handle.clone(),
                     enemy_transform.translation,
                 ));
+
+                sfx_events.send(SFXEvents::DeathSound);
 
                 enemy.0 = EnemyState::Dead;
             }
         }
     }
-
-
 }

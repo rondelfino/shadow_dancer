@@ -1,12 +1,6 @@
 #![allow(clippy::type_complexity)]
-use bevy::{
-    prelude::*,
-    render::{
-        camera::{DepthCalculation, ScalingMode},
-        texture::ImageSettings,
-    },
-};
-use collision::collision_system;
+use audio::{GameAudioPlugin, SFXEvents};
+use bevy::{audio::AudioPlugin, prelude::*, render::camera::ScalingMode};
 use components::*;
 use constants::*;
 use death_effect::death_effect_animator;
@@ -15,8 +9,10 @@ use player::{player_attacking_system, PlayerBundle};
 use shuriken::{shuriken_animator, shuriken_movement};
 use walls::{spawn_walls, wall_animator};
 
+#[derive(Resource)]
 struct EnemyCount(u32);
 
+#[derive(Resource)]
 struct SpawnTimer(Timer);
 
 struct Bounds {
@@ -39,6 +35,7 @@ enum GameSystemLabel {
 //     Paused,
 // }
 
+mod audio;
 mod collision;
 mod components;
 mod constants;
@@ -61,7 +58,6 @@ fn setup(
     let camera_bundle = Camera2dBundle {
         projection: OrthographicProjection {
             far: 1000.0,
-            depth_calculation: DepthCalculation::ZDifference,
             scaling_mode: ScalingMode::None,
             scale: 1.0,
             left: -half_width,
@@ -73,7 +69,8 @@ fn setup(
         ..Default::default()
     };
 
-    commands.spawn_bundle(camera_bundle);
+    commands.spawn(camera_bundle);
+
     spawn_player(&mut commands, asset_server, texture_atlases);
 }
 
@@ -83,8 +80,8 @@ fn spawn_player(
     texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands
-        .spawn()
-        .insert_bundle(PlayerBundle::new(asset_server, texture_atlases));
+        .spawn_empty()
+        .insert(PlayerBundle::new(asset_server, texture_atlases));
 }
 
 fn spawn_enemy(
@@ -93,8 +90,8 @@ fn spawn_enemy(
     texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     commands
-        .spawn()
-        .insert_bundle(EnemyBundle::pawn(asset_server, texture_atlases));
+        .spawn_empty()
+        .insert(EnemyBundle::pawn(asset_server, texture_atlases));
 }
 
 fn enemy_spawner(
@@ -224,17 +221,27 @@ fn despawner(mut commands: Commands, query: Query<Entity, With<MarkDespawn>>) {
 
 fn main() {
     App::new()
-        .insert_resource(ImageSettings::default_nearest())
-        .insert_resource(WindowDescriptor {
-            title: "Shadow Dancer".to_string(),
-            width: 1600.0,
-            height: 900.0,
-            ..default()
-        })
-        .insert_resource(SpawnTimer(Timer::from_seconds(0.5, true)))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    window: WindowDescriptor {
+                        width: 1600.0,
+                        height: 900.0,
+                        position: WindowPosition::Centered,
+                        monitor: MonitorSelection::Current,
+                        title: "Shadow Dancer".to_string(),
+                        mode: WindowMode::Windowed,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
+        .add_plugin(GameAudioPlugin)
+        .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .insert_resource(EnemyCount(0))
-        .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
+        .add_event::<SFXEvents>()
         .add_startup_system(spawn_walls)
         .add_system(
             despawner
@@ -250,7 +257,6 @@ fn main() {
         .add_system(enemy_animator.label(GameSystemLabel::Core))
         .add_system(enemy_movement.label(GameSystemLabel::Core))
         .add_system(gravity_system.label(GameSystemLabel::Core))
-        .add_system(collision_system.label(GameSystemLabel::Core))
         .add_system(death_effect_animator.label(GameSystemLabel::Core))
         .run();
 }
