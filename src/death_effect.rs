@@ -17,7 +17,7 @@ impl DeathEffectBundle {
     pub fn new(texture_atlas_handle: Handle<TextureAtlas>, starting_pos: Vec3) -> Self {
         DeathEffectBundle {
             effect: Effect,
-            animation_timer: AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
+            animation_timer: AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             velocity: Velocity(Vec2::new(0.0, FALLING_SPEED)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
