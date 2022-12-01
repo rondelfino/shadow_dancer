@@ -84,8 +84,8 @@ pub fn wall_animator(mut query: Query<(&mut Transform, &Dimensions), With<Wall>>
         wall_transform.translation.y += FALLING_SPEED * time.delta_seconds();
 
         //repeat wall motion by moving offscreen top wall to the bottom
-        if wall_transform.translation.y > 3.0 * wall_dimensions.0.y {
-            wall_transform.translation.y = -2.0 * wall_dimensions.0.y
+        if wall_transform.translation.y > 1.5 * wall_dimensions.0.y {
+            wall_transform.translation.y -= 3.0 * wall_dimensions.0.y
         }
     }
 }
