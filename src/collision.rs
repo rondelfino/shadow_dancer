@@ -10,8 +10,11 @@ pub fn collision_system(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut commands: Commands,
-    shuriken_query: Query<(Entity, &Transform, &HitBox), With<Shuriken>>,
-    mut enemy_query: Query<(Entity, &Transform, &HitBox, &mut Enemy), With<Enemy>>,
+    shuriken_query: Query<(Entity, &Transform, &HitBox), (With<Shuriken>, Without<MarkDespawn>)>,
+    mut enemy_query: Query<
+        (Entity, &Transform, &HitBox, &mut Enemy),
+        (With<Enemy>, Without<MarkDespawn>),
+    >,
     mut sfx_events: EventWriter<SFXEvents>,
 ) {
     let texture_handle = asset_server.load("effects/death.png");
