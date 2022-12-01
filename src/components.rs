@@ -28,6 +28,9 @@ pub struct Wall;
 pub struct Shuriken;
 
 #[derive(Component)]
+pub struct Background;
+
+#[derive(Component)]
 pub struct WallHangingTimer(pub Timer);
 
 #[derive(Component)]

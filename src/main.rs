@@ -1,6 +1,7 @@
 #![allow(clippy::type_complexity)]
 use audio::{GameAudioPlugin, SFXEvents};
-use bevy::{audio::AudioPlugin, prelude::*, render::camera::ScalingMode};
+use background::*;
+use bevy::{prelude::*, render::camera::ScalingMode};
 use components::*;
 use constants::*;
 use death_effect::death_effect_animator;
@@ -44,6 +45,7 @@ mod enemy;
 mod player;
 mod shuriken;
 mod walls;
+mod background;
 // mod settings;
 // mod systems;
 
@@ -243,11 +245,13 @@ fn main() {
         .add_startup_system(setup)
         .add_event::<SFXEvents>()
         .add_startup_system(spawn_walls)
+        .add_startup_system(spawn_day_background)
         .add_system(
             despawner
                 .after(GameSystemLabel::Core)
                 .label(GameSystemLabel::Cleanup),
         )
+        .add_system(background_animator.label(GameSystemLabel::Core))
         .add_system(wall_animator.label(GameSystemLabel::Core))
         .add_system(play_controls.label(GameSystemLabel::Core))
         .add_system(enemy_spawner.label(GameSystemLabel::Core))
