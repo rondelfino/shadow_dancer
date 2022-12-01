@@ -17,7 +17,7 @@ impl DeathEffectBundle {
     pub fn new(texture_atlas_handle: Handle<TextureAtlas>, starting_pos: Vec3) -> Self {
         DeathEffectBundle {
             effect: Effect,
-            animation_timer: AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            animation_timer: AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
             velocity: Velocity(Vec2::new(0.0, FALLING_SPEED)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
@@ -48,7 +48,7 @@ pub fn death_effect_animator(
     for (entity, mut sprite, mut animation_timer, mut transform, velocity) in query.iter_mut() {
         transform.translation.y += velocity.0.y * time.delta_seconds();
 
-        if animation_timer.tick(time.delta()).just_finished() && sprite.index < 3 {
+        if animation_timer.0.tick(time.delta()).just_finished() && sprite.index < 3 {
             sprite.index += 1;
 
             if sprite.index > 3 {

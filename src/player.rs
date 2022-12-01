@@ -24,7 +24,7 @@ impl PlayerBundle {
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
         PlayerBundle {
             player: Player(PlayerState::Falling),
-            attacking_timer: AttackingTimer(Timer::from_seconds(0.025, TimerMode::Repeating)),
+            attacking_timer: AttackingTimer(Timer::from_seconds(0.035, TimerMode::Repeating)),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {

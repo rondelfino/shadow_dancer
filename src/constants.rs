@@ -7,4 +7,4 @@ pub const TOP_WALL: f32 = WORLD_HEIGHT / 2.0;
 pub const BOTTOM_WALL: f32 = -WORLD_HEIGHT / 2.0;
 
 pub const PLAYER_SPEED: f32 = 350.0;
-pub const FALLING_SPEED: f32 = 800.0;
+pub const FALLING_SPEED: f32 = 550.0;
