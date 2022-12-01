@@ -1,17 +1,20 @@
 use bevy::prelude::*;
-use bevy_kira_audio::{
-    Audio as KiraAudio, AudioChannel, AudioControl, AudioPlugin as KiraAudioPlugin,
-    AudioSource as KiraAudioSource,
+use bevy_kira_audio::prelude::{
+    Audio as KiraAudio, AudioApp, AudioChannel, AudioControl, AudioEasing,
+    AudioPlugin as KiraAudioPlugin, AudioSource as KiraAudioSource, AudioTween,
 };
+
+use std::time::Duration;
 
 use crate::{collision::collision_system, GameSystemLabel};
 
 pub struct GameAudioPlugin;
 
 #[derive(Resource)]
-pub struct MusicChannel;
+pub struct BGMChannel;
+
 #[derive(Resource)]
-pub struct EffectsChannel;
+pub struct SFXChannel;
 
 #[derive(Resource)]
 pub struct SFXHandles {
@@ -23,70 +26,61 @@ pub struct SFXHandles {
 pub enum SFXEvents {
     CollisionSound,
     DeathSound,
-    ShurikenSound
+    ShurikenSound,
 }
 
-// #[derive(Resource)]
-// pub struct AudioSate {
-//     enemy_death_handle: Handle<AudioSource>,
-//     shuriken_attack_handle: Handle<AudioSource>,
-// }
-
-// #[derive(Resource)]
-// pub struct CollisionSound(pub Handle<KiraAudioSource>);
+#[derive(Resource)]
+pub struct BGMHandles {
+    bgm_01: Handle<KiraAudioSource>,
+}
 
 impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(KiraAudioPlugin)
-            // .add_audio_channel::<MusicChannel>()
-            // .add_audio_channel::<EffectsChannel>()
+            .add_audio_channel::<BGMChannel>()
+            .add_audio_channel::<SFXChannel>()
             .add_startup_system(load_audio.label(GameSystemLabel::Core))
-            // .add_startup_system_to_stage(
-            //     StartupStage::PreStartup,
-            //     load_audio.label(GameSystemLabel::Core),
-            // )
+            .add_startup_system(set_audio_channel_volume.label(GameSystemLabel::Core))
+            .add_startup_system(play_bgm.label(GameSystemLabel::Core))
             .add_system_set(
                 SystemSet::new()
                     .with_system(collision_system)
-                    .with_system(play_collision_sound.after(collision_system))
+                    .with_system(play_sfx.after(collision_system))
                     .label(GameSystemLabel::Core),
             );
     }
 }
 
 pub fn set_audio_channel_volume(
-    music_channel: Res<AudioChannel<MusicChannel>>,
-    effects_channel: Res<AudioChannel<EffectsChannel>>,
+    music_channel: Res<AudioChannel<BGMChannel>>,
+    effects_channel: Res<AudioChannel<SFXChannel>>,
 ) {
-    music_channel.set_volume(0.5);
-    effects_channel.set_volume(0.5);
+    music_channel.set_volume(0.025);
+    effects_channel.set_volume(0.075);
 }
 
 pub fn load_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
     let collision_sound = asset_server.load("enemy/impact.ogg");
     let death_sound = asset_server.load("effects/disintegrate.ogg");
-    let shuriken_sound = asset_server.load("player/swoosh.ogg");
+    let shuriken_sound = asset_server.load("player/shuriken.ogg");
+
+    let bgm_01 = asset_server.load("music/17-Union-Lizard-_Final-Boss_-Keisuke-Tsukahara.ogg");
+
     commands.insert_resource(SFXHandles {
         collision_sound,
         death_sound,
         shuriken_sound,
     });
 
-    // let enemy_death_handle = asset_server.load("effects/disintegrate.ogg");
-    // let shuriken_attack_handle = asset_server.load("player/swoosh.ogg");
-
-    // commands.insert_resource(AudioSate {
-    //     enemy_death_handle: enemy_death_handle,
-    //     shuriken_attack_handle: shuriken_attack_handle,
-    // })
+    commands.insert_resource(BGMHandles { bgm_01 });
 }
 
-fn play_collision_sound(
-    audio: Res<KiraAudio>,
+fn play_sfx(
+    audio: Res<AudioChannel<SFXChannel>>,
     sound: Res<SFXHandles>,
-    mut collision_events: EventReader<SFXEvents>,
+    mut sfx_events: EventReader<SFXEvents>,
 ) {
-    for event in collision_events.iter() {
+    for event in sfx_events.iter() {
         match event {
             SFXEvents::CollisionSound => {
                 audio.play(sound.collision_sound.clone());
@@ -100,7 +94,17 @@ fn play_collision_sound(
         }
     }
 
-    if !collision_events.is_empty() {
-        collision_events.clear();
+    if !sfx_events.is_empty() {
+        sfx_events.clear();
     }
+}
+
+pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, asset_server: Res<AssetServer>) {
+    audio
+        .play(asset_server.load("music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg"))
+        .fade_in(AudioTween::new(
+            Duration::from_secs(2),
+            AudioEasing::OutPowi(2),
+        ))
+        .looped();
 }

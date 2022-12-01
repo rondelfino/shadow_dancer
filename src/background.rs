@@ -1,8 +1,8 @@
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 
 use crate::{
     components::{Background, Dimensions},
-    constants::{FALLING_SPEED, WORLD_HEIGHT},
+    constants::FALLING_SPEED,
 };
 
 #[derive(Bundle)]
@@ -20,7 +20,7 @@ impl BackgroundBundle {
             texture: texture_image_handle,
             transform: Transform {
                 translation: Vec3::new(0.0, -dimensions.0.y / 7.5, 0.0),
-                scale: Vec3::new(0.5, 0.5, 0.0),
+                scale: Vec3::new(0.63, 0.5, 0.0),
                 ..default()
             },
             ..default()

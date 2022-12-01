@@ -200,6 +200,7 @@ fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
     let right_bound = transform.translation.x + size.unwrap_or_default().x / 2.0;
     let top_bound = transform.translation.y + size.unwrap_or_default().y / 2.0;
     let bottom_bound = transform.translation.y - size.unwrap_or_default().y / 2.0;
+    
 
     Bounds {
         top: top_bound,
