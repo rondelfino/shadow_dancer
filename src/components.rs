@@ -25,6 +25,9 @@ pub struct Enemy(pub EnemyState);
 pub struct Wall;
 
 #[derive(Component)]
+pub struct Roof;
+
+#[derive(Component)]
 pub struct Shuriken;
 
 #[derive(Component)]
