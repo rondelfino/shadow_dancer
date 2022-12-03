@@ -7,6 +7,7 @@ use constants::*;
 use death_effect::death_effect_animator;
 use enemy::{enemy_animator, EnemyBundle};
 use player::{player_attacking_system, PlayerBundle};
+use roof::{roof_animator, spawn_roofs};
 use shuriken::{shuriken_animator, shuriken_movement};
 use walls::{spawn_walls, wall_animator};
 
@@ -25,6 +26,7 @@ struct Bounds {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
 enum GameSystemLabel {
+    Setup,
     Core,
     Cleanup,
 }
@@ -37,15 +39,16 @@ enum GameSystemLabel {
 // }
 
 mod audio;
+mod background;
 mod collision;
 mod components;
 mod constants;
 mod death_effect;
 mod enemy;
 mod player;
+mod roof;
 mod shuriken;
 mod walls;
-mod background;
 // mod settings;
 // mod systems;
 
@@ -200,7 +203,6 @@ fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
     let right_bound = transform.translation.x + size.unwrap_or_default().x / 2.0;
     let top_bound = transform.translation.y + size.unwrap_or_default().y / 2.0;
     let bottom_bound = transform.translation.y - size.unwrap_or_default().y / 2.0;
-    
 
     Bounds {
         top: top_bound,
@@ -245,6 +247,7 @@ fn main() {
         .insert_resource(EnemyCount(0))
         .add_startup_system(setup)
         .add_event::<SFXEvents>()
+        .add_startup_system(spawn_roofs)
         .add_startup_system(spawn_walls)
         .add_startup_system(spawn_day_background)
         .add_system(
@@ -253,6 +256,7 @@ fn main() {
                 .label(GameSystemLabel::Cleanup),
         )
         .add_system(background_animator.label(GameSystemLabel::Core))
+        .add_system(roof_animator.label(GameSystemLabel::Core))
         .add_system(wall_animator.label(GameSystemLabel::Core))
         .add_system(play_controls.label(GameSystemLabel::Core))
         .add_system(enemy_spawner.label(GameSystemLabel::Core))
