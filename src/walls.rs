@@ -63,18 +63,19 @@ pub fn spawn_walls(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let texture_handle = asset_server.load("objects/walls.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(48.0, 224.0), 2, 1, None, None);
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(48.0, 224.0), 2, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
     //spawns walls that span offscreen
     for i in -2..=2 {
         commands.spawn_empty().insert(WallBundle::left_wall(
             texture_atlas_handle.clone(),
-            i as f32 * 224.0,
+            i as f32 * 224.0 - (224.0 * 3.48),
         ));
         commands.spawn_empty().insert(WallBundle::right_wall(
             texture_atlas_handle.clone(),
-            i as f32 * 224.0,
+            i as f32 * 224.0 - (224.0 * 2.53),
         ));
     }
 }
