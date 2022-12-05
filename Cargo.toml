@@ -9,6 +9,7 @@ edition = "2021"
 bevy = { version = "0.9.0", features = ["dynamic"] }
 rand = "0.8.5"
 bevy_kira_audio = "0.13.0"
+iyes_loopless = "0.9.1"
 
 
 [profile.dev]
