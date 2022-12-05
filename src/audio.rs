@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::{
-    Audio as KiraAudio, AudioApp, AudioChannel, AudioControl, AudioEasing,
-    AudioPlugin as KiraAudioPlugin, AudioSource as KiraAudioSource, AudioTween,
+    AudioApp, AudioChannel, AudioControl, AudioEasing, AudioPlugin as KiraAudioPlugin,
+    AudioSource as KiraAudioSource, AudioTween,
 };
 
 use std::time::Duration;
@@ -39,12 +39,11 @@ impl Plugin for GameAudioPlugin {
         app.add_plugin(KiraAudioPlugin)
             .add_audio_channel::<BGMChannel>()
             .add_audio_channel::<SFXChannel>()
-            .add_startup_system(load_audio.label(GameSystemLabel::Core))
-            .add_startup_system(set_audio_channel_volume.label(GameSystemLabel::Core))
-            .add_startup_system(play_bgm.label(GameSystemLabel::Core))
+            .add_startup_system_to_stage(StartupStage::PreStartup, load_audio)
+            .add_startup_system_to_stage(StartupStage::PreStartup, set_audio_channel_volume)
+            .add_startup_system(play_bgm)
             .add_system_set(
                 SystemSet::new()
-                    .with_system(collision_system)
                     .with_system(play_sfx.after(collision_system))
                     .label(GameSystemLabel::Core),
             );
@@ -64,7 +63,8 @@ pub fn load_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
     let death_sound = asset_server.load("effects/disintegrate.ogg");
     let shuriken_sound = asset_server.load("player/shuriken.ogg");
 
-    let bgm_01 = asset_server.load("music/17-Union-Lizard-_Final-Boss_-Keisuke-Tsukahara.ogg");
+    let bgm_01 =
+        asset_server.load("music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg");
 
     commands.insert_resource(SFXHandles {
         collision_sound,
@@ -99,9 +99,9 @@ fn play_sfx(
     }
 }
 
-pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, asset_server: Res<AssetServer>) {
+pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, sound: Res<BGMHandles>) {
     audio
-        .play(asset_server.load("music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg"))
+        .play(sound.bgm_01.clone())
         .fade_in(AudioTween::new(
             Duration::from_secs(2),
             AudioEasing::OutPowi(2),
