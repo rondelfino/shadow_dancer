@@ -41,13 +41,13 @@ impl EnemyBundle {
         }
 
         let direction = match random::<bool>() {
-            true => -1.,
-            false => 1.,
+            true => -1.0,
+            false => 1.0,
         };
 
         let mut starting_x = RIGHT_WALL;
 
-        if direction > 0. {
+        if direction > 0.0 {
             starting_x = LEFT_WALL;
         }
 

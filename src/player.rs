@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     audio::SFXEvents,
-    components::{AttackingTimer, Player, PlayerState},
+    components::{AttackingTimer, Player, PlayerState, WalkingAnimationTimer},
     shuriken::ShurikenBundle,
 };
 
@@ -11,6 +11,7 @@ pub struct PlayerBundle {
     player: Player,
     attacking_timer: AttackingTimer,
     sprite_bundle: SpriteSheetBundle,
+    walking_animation_timer: WalkingAnimationTimer,
 }
 
 impl PlayerBundle {
@@ -18,18 +19,23 @@ impl PlayerBundle {
         asset_server: Res<AssetServer>,
         mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     ) -> Self {
-        let texture_handle = asset_server.load("player/joe_musashi_falling.png");
+        let texture_handle = asset_server.load("player/joe_musashi.png");
         let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(45.0, 45.0), 4, 1, None, None);
+            TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 7, 3, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
         PlayerBundle {
-            player: Player(PlayerState::Falling),
-            attacking_timer: AttackingTimer(Timer::from_seconds(0.04, TimerMode::Repeating)),
+            player: Player(PlayerState::Idle),
+            attacking_timer: AttackingTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
+            walking_animation_timer: WalkingAnimationTimer(Timer::from_seconds(
+                0.2,
+                TimerMode::Repeating,
+            )),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
                     translation: Vec3::new(0.0, 140.0, 2.0),
-                    ..Default::default()
+                    ..default()
                 },
                 ..default()
             },
@@ -76,3 +82,41 @@ pub fn player_attacking_system(
         }
     }
 }
+
+pub fn player_movement_animation(
+    time: Res<Time>,
+
+    mut query: Query<
+        (
+            &mut Player,
+            &mut WalkingAnimationTimer,
+            &mut TextureAtlasSprite,
+        ),
+        With<Player>,
+    >,
+    mut sfx_events: EventWriter<SFXEvents>,
+) {
+    let (player, mut walking_animation_timer, mut sprite) = query.single_mut();
+
+    if player.0 == PlayerState::Idle {
+        sprite.index = 7;
+        return;
+    }
+
+    if player.0 == PlayerState::WalkingLeft {
+        sprite.flip_x = true;
+    } else if player.0 == PlayerState::WalkingRight {
+        sprite.flip_x = false;
+    }
+
+    if walking_animation_timer.0.tick(time.delta()).just_finished() {
+        sprite.index = sprite.index + 1;
+    }
+
+    if (player.0 == PlayerState::WalkingLeft || player.0 == PlayerState::WalkingRight)
+        && (sprite.index > 13 || sprite.index < 8)
+    {
+        sprite.index = 8;
+    }
+}
+

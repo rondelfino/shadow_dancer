@@ -6,8 +6,12 @@ pub enum EnemyState {
     WallHanging,
     Dead,
 }
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum PlayerState {
+    Idle,
+    WalkingLeft,
+    WalkingRight,
+    Jumping,
     Falling,
     Attacking,
 }
@@ -56,6 +60,9 @@ pub struct Velocity(pub Vec2);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct WalkingAnimationTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Effect;
