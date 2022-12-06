@@ -26,7 +26,7 @@ impl PlayerBundle {
 
         PlayerBundle {
             player: Player(PlayerState::Idle),
-            attacking_timer: AttackingTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
+            attacking_timer: AttackingTimer(Timer::from_seconds(0.035, TimerMode::Repeating)),
             walking_animation_timer: WalkingAnimationTimer(Timer::from_seconds(
                 0.2,
                 TimerMode::Repeating,
@@ -65,6 +65,8 @@ pub fn player_attacking_system(
         return;
     }
 
+    sprite.flip_x = false;
+
     if attacking_timer.0.tick(time.delta()).just_finished() {
         sprite.index = (sprite.index + 1) % 4;
 
@@ -98,11 +100,17 @@ pub fn player_movement_animation(
 ) {
     let (player, mut walking_animation_timer, mut sprite) = query.single_mut();
 
+    if player.0 != PlayerState::Idle
+        && player.0 != PlayerState::WalkingLeft
+        && player.0 != PlayerState::WalkingRight
+    {
+        return;
+    }
+
     if player.0 == PlayerState::Idle {
         sprite.index = 7;
         return;
     }
-
     if player.0 == PlayerState::WalkingLeft {
         sprite.flip_x = true;
     } else if player.0 == PlayerState::WalkingRight {
@@ -119,4 +127,3 @@ pub fn player_movement_animation(
         sprite.index = 8;
     }
 }
-
