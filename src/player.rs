@@ -2,8 +2,11 @@ use bevy::prelude::*;
 
 use crate::{
     audio::SFXEvents,
-    components::{AttackingTimer, Player, PlayerState, WalkingAnimationTimer},
+    components::{
+        AttackingTimer, FlippingAnimationTimer, Player, PlayerState, WalkingAnimationTimer,
+    },
     shuriken::ShurikenBundle,
+    GameState,
 };
 
 #[derive(Bundle)]
@@ -12,6 +15,7 @@ pub struct PlayerBundle {
     attacking_timer: AttackingTimer,
     sprite_bundle: SpriteSheetBundle,
     walking_animation_timer: WalkingAnimationTimer,
+    flipping_animation_timer: FlippingAnimationTimer,
 }
 
 impl PlayerBundle {
@@ -31,10 +35,14 @@ impl PlayerBundle {
                 0.2,
                 TimerMode::Repeating,
             )),
+            flipping_animation_timer: FlippingAnimationTimer(Timer::from_seconds(
+                0.1,
+                TimerMode::Repeating,
+            )),
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
-                    translation: Vec3::new(0.0, 140.0, 2.0),
+                    translation: Vec3::new(0.0, 50.0, 2.0),
                     ..default()
                 },
                 ..default()
@@ -61,8 +69,16 @@ pub fn player_attacking_system(
 ) {
     let (mut player, mut attacking_timer, transform, mut sprite) = query.single_mut();
 
+    if player.0 == PlayerState::Falling {
+        sprite.index = 0;
+    }
+
     if player.0 != PlayerState::Attacking {
         return;
+    }
+
+    if sprite.index == 3 {
+        player.0 = PlayerState::Falling;
     }
 
     sprite.flip_x = false;
@@ -78,14 +94,10 @@ pub fn player_attacking_system(
             ));
             sfx_events.send(SFXEvents::ShurikenSound);
         }
-
-        if sprite.index == 0 {
-            player.0 = PlayerState::Falling
-        }
     }
 }
 
-pub fn player_movement_animation(
+pub fn player_walking_animation(
     time: Res<Time>,
 
     mut query: Query<
@@ -98,7 +110,7 @@ pub fn player_movement_animation(
     >,
     mut sfx_events: EventWriter<SFXEvents>,
 ) {
-    let (player, mut walking_animation_timer, mut sprite) = query.single_mut();
+    let (mut player, mut walking_animation_timer, mut sprite) = query.single_mut();
 
     if player.0 != PlayerState::Idle
         && player.0 != PlayerState::WalkingLeft
@@ -107,10 +119,13 @@ pub fn player_movement_animation(
         return;
     }
 
+    println!("{:?}", player.0);
+
     if player.0 == PlayerState::Idle {
         sprite.index = 7;
         return;
     }
+
     if player.0 == PlayerState::WalkingLeft {
         sprite.flip_x = true;
     } else if player.0 == PlayerState::WalkingRight {
@@ -125,5 +140,39 @@ pub fn player_movement_animation(
         && (sprite.index > 13 || sprite.index < 8)
     {
         sprite.index = 8;
+    }
+}
+
+pub fn player_flipping_animation(
+    time: Res<Time>,
+
+    mut query: Query<
+        (
+            &mut Player,
+            &mut FlippingAnimationTimer,
+            &mut TextureAtlasSprite,
+        ),
+        With<Player>,
+    >,
+    mut sfx_events: EventWriter<SFXEvents>,
+    mut game_state: ResMut<State<GameState>>,
+) {
+    let (mut player, mut jumping_animation_timer, mut sprite) = query.single_mut();
+
+    if player.0 != PlayerState::Flipping {
+        return;
+    }
+
+    if player.0 == PlayerState::Flipping && sprite.index < 14 {
+        sprite.index = 14;
+    }
+
+    if jumping_animation_timer.tick(time.delta()).just_finished() {
+        sprite.index = sprite.index + 1;
+    }
+
+    if sprite.index > 19 {
+        player.0 = PlayerState::Falling;
+        game_state.set(GameState::InGame).unwrap();
     }
 }

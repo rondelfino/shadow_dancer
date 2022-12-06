@@ -11,7 +11,7 @@ pub enum PlayerState {
     Idle,
     WalkingLeft,
     WalkingRight,
-    Jumping,
+    Flipping,
     Falling,
     Attacking,
 }
@@ -63,6 +63,9 @@ pub struct AnimationTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct WalkingAnimationTimer(pub Timer);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct FlippingAnimationTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Effect;

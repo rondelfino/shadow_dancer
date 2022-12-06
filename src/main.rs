@@ -7,7 +7,9 @@ use components::*;
 use constants::*;
 use death_effect::death_effect_animator;
 use enemy::{enemy_animator, EnemyBundle};
-use player::{player_attacking_system, player_movement_animation, PlayerBundle};
+use player::{
+    player_attacking_system, player_flipping_animation, player_walking_animation, PlayerBundle,
+};
 use roof::{roof_animator, spawn_roofs};
 use shuriken::{shuriken_animator, shuriken_movement};
 use walls::{spawn_walls, wall_animator};
@@ -167,7 +169,7 @@ fn enemy_movement(
 
 fn player_controls(
     keyboard_input: Res<Input<KeyCode>>,
-    mut game_state: ResMut<State<GameState>>,
+    game_state: ResMut<State<GameState>>,
     time: Res<Time>,
     mut query: Query<(&mut Player, &mut Transform, &TextureAtlasSprite), With<Player>>,
 ) {
@@ -201,8 +203,7 @@ fn player_controls(
         }
     }
 
-    if game_state.current().clone() == GameState::StageIntro {
-        player.0 = PlayerState::Idle;
+    if game_state.current().clone() == GameState::StageIntro && player.0 != PlayerState::Flipping {
         if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) {
             player.0 = PlayerState::WalkingLeft;
             if left > LEFT_WALL {
@@ -214,12 +215,18 @@ fn player_controls(
             if right < RIGHT_WALL {
                 player_transform.translation.x += WALKING_SPEED * time.delta().as_secs_f32();
             }
+        } else if keyboard_input.any_just_released(vec![
+            KeyCode::Right,
+            KeyCode::D,
+            KeyCode::Left,
+            KeyCode::A,
+        ]) {
+            player.0 = PlayerState::Idle;
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::C) {
-        player.0 = PlayerState::Falling;
-        game_state.set(GameState::InGame).unwrap();
+    if keyboard_input.just_pressed(KeyCode::C) && game_state.current().clone() != GameState::InGame {
+        player.0 = PlayerState::Flipping;
     }
 }
 
@@ -276,7 +283,8 @@ fn main() {
         .add_startup_system(spawn_roofs)
         .add_startup_system(spawn_walls)
         .add_startup_system(spawn_day_background)
-        .add_system(player_movement_animation)
+        .add_system(player_walking_animation)
+        .add_system(player_flipping_animation)
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
                 .label(GameSystemLabel::Core)
