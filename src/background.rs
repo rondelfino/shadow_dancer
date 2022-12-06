@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::{Background, Dimensions},
-    constants::FALLING_SPEED,
+    constants::{FALLING_SPEED, WORLD_HEIGHT, WORLD_WIDTH},
 };
 
 #[derive(Bundle)]
@@ -16,11 +16,16 @@ impl BackgroundBundle {
     pub fn new(texture_image_handle: Handle<Image>) -> Self {
         let dimensions = Dimensions(Vec2::new(1248.0, 1667.0));
 
+        let scale = WORLD_WIDTH / (dimensions.0.x - 260.0);
         let sprite_bundle = SpriteBundle {
             texture: texture_image_handle,
             transform: Transform {
-                translation: Vec3::new(0.0, -dimensions.0.y / 7.5, 0.0),
-                scale: Vec3::new(0.63, 0.5, 0.0),
+                translation: Vec3::new(
+                    0.0,
+                    -((dimensions.0.y * scale) / 2.0) + (WORLD_HEIGHT / 4.0) + 20.0,
+                    0.0,
+                ),
+                scale: Vec3::new(scale, scale, 0.0),
                 ..default()
             },
             ..default()

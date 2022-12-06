@@ -10,9 +10,9 @@ use enemy::{enemy_animator, EnemyBundle};
 use player::{
     player_attacking_system, player_flipping_animation, player_walking_animation, PlayerBundle,
 };
-use roof::{roof_animator, spawn_roofs};
+use roof::{roof_animator, build_towers};
 use shuriken::{shuriken_animator, shuriken_movement};
-use walls::{spawn_walls, wall_animator};
+use walls::{wall_animator};
 
 #[derive(Resource)]
 struct EnemyCount(u32);
@@ -67,8 +67,8 @@ fn setup(
     let camera_bundle = Camera2dBundle {
         projection: OrthographicProjection {
             far: 1000.0,
-            scaling_mode: ScalingMode::None,
-            scale: 1.0,
+            scaling_mode: ScalingMode::FixedVertical(WORLD_HEIGHT),
+            scale: 0.5,
             left: -half_width,
             right: half_width,
             top: half_height,
@@ -169,11 +169,11 @@ fn enemy_movement(
 
 fn player_controls(
     keyboard_input: Res<Input<KeyCode>>,
-    game_state: ResMut<State<GameState>>,
+    game_state: Res<State<GameState>>,
     time: Res<Time>,
-    mut query: Query<(&mut Player, &mut Transform, &TextureAtlasSprite), With<Player>>,
+    mut query: Query<(&mut Player, &mut Transform, &TextureAtlasSprite, &Dimensions), With<Player>>,
 ) {
-    let (mut player, mut player_transform, sprite) = query.single_mut();
+    let (mut player, mut player_transform, sprite, dimensions) = query.single_mut();
     let Bounds {
         top,
         right,
@@ -186,15 +186,15 @@ fn player_controls(
             player_transform.translation.x -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
-        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL {
+        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL - dimensions.0.x / 2.0 {
             player_transform.translation.x += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
-        if keyboard_input.pressed(KeyCode::W) && top < TOP_WALL {
+        if keyboard_input.pressed(KeyCode::W) && top < UPPER_BOUND {
             player_transform.translation.y += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
-        if keyboard_input.pressed(KeyCode::S) && bottom > BOTTOM_WALL {
+        if keyboard_input.pressed(KeyCode::S) && bottom > LOWER_BOUND {
             player_transform.translation.y -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
@@ -203,7 +203,7 @@ fn player_controls(
         }
     }
 
-    if game_state.current().clone() == GameState::StageIntro && player.0 != PlayerState::Flipping {
+    if game_state.current() == &GameState::StageIntro && player.0 != PlayerState::Flipping {
         if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) {
             player.0 = PlayerState::WalkingLeft;
             if left > LEFT_WALL {
@@ -225,7 +225,8 @@ fn player_controls(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::C) && game_state.current().clone() != GameState::InGame {
+    if keyboard_input.just_pressed(KeyCode::C) && game_state.current() != &GameState::InGame
+    {
         player.0 = PlayerState::Flipping;
     }
 }
@@ -262,12 +263,9 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     window: WindowDescriptor {
-                        width: 1600.0,
-                        height: 900.0,
-                        position: WindowPosition::Centered,
-                        monitor: MonitorSelection::Current,
                         title: "Shadow Dancer".to_string(),
                         mode: WindowMode::Windowed,
+                        scale_factor_override: Some(1.0),
                         ..default()
                     },
                     ..default()
@@ -280,8 +278,7 @@ fn main() {
         .add_startup_system(setup)
         .add_event::<SFXEvents>()
         .add_state(GameState::StageIntro)
-        .add_startup_system(spawn_roofs)
-        .add_startup_system(spawn_walls)
+        .add_startup_system(build_towers)
         .add_startup_system(spawn_day_background)
         .add_system(player_walking_animation)
         .add_system(player_flipping_animation)

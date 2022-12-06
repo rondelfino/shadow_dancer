@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::Wall,
-    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
+    constants::{ASPECT_RATIO, FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
     Dimensions,
 };
 
@@ -14,13 +14,23 @@ pub struct WallBundle {
 }
 
 impl WallBundle {
-    pub fn left_wall(texture_atlas_handle: Handle<TextureAtlas>, y_pos: f32) -> Self {
+    pub fn left_wall(
+        texture_atlas_handle: Handle<TextureAtlas>,
+        index: i32,
+        left_roof_height: f32,
+    ) -> Self {
         let dimensions = Dimensions(Vec2::new(48.0, 224.0));
 
         let mut sprite_bundle = SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
-                translation: Vec3::new(LEFT_WALL - dimensions.0.x / 2.0, y_pos, 0.0),
+                translation: Vec3::new(
+                    LEFT_WALL - dimensions.0.x / 2.0,
+                    (index as f32 * dimensions.0.y)
+                        - (left_roof_height / 2.0 + dimensions.0.y / 2.0)
+                        - 100.0,
+                    0.0,
+                ),
                 ..default()
             },
             ..default()
@@ -35,13 +45,23 @@ impl WallBundle {
         }
     }
 
-    pub fn right_wall(texture_atlas_handle: Handle<TextureAtlas>, y_pos: f32) -> Self {
+    pub fn right_wall(
+        texture_atlas_handle: Handle<TextureAtlas>,
+        index: i32,
+        right_roof_height: f32,
+    ) -> Self {
         let dimensions = Dimensions(Vec2::new(48.0, 224.0));
 
         let mut sprite_bundle = SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
-                translation: Vec3::new(RIGHT_WALL + dimensions.0.x / 2.0, y_pos, 0.0),
+                translation: Vec3::new(
+                    RIGHT_WALL + dimensions.0.x / 2.0,
+                    (index as f32 * dimensions.0.y)
+                        - (right_roof_height / 2.0 + dimensions.0.y / 2.0)
+                        - 100.0,
+                    0.0,
+                ),
                 ..default()
             },
             ..default()
@@ -61,6 +81,8 @@ pub fn spawn_walls(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    left_roof_height: f32,
+    right_roof_height: f32,
 ) {
     let texture_handle = asset_server.load("objects/walls.png");
     let texture_atlas =
@@ -68,14 +90,16 @@ pub fn spawn_walls(
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
     //spawns walls that span offscreen
-    for i in -2..=2 {
+    for i in -4..=0 {
         commands.spawn_empty().insert(WallBundle::left_wall(
             texture_atlas_handle.clone(),
-            i as f32 * 224.0 - (224.0 * 3.48),
+            i,
+            left_roof_height,
         ));
         commands.spawn_empty().insert(WallBundle::right_wall(
             texture_atlas_handle.clone(),
-            i as f32 * 224.0 - (224.0 * 2.53),
+            i,
+            right_roof_height,
         ));
     }
 }
