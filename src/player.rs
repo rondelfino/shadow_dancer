@@ -2,8 +2,14 @@ use bevy::prelude::*;
 
 use crate::{
     audio::SFXEvents,
+    calculate_bounds,
     components::{
-        AttackingTimer, FlippingAnimationTimer, Player, PlayerState, WalkingAnimationTimer,
+        AttackingTimer, Dimensions, FlippingAnimationTimer, Player, PlayerState,
+        WalkingAnimationTimer,
+    },
+    constants::{
+        ASPECT_RATIO, LEFT_WALL, LOWER_BOUND, PLAYER_AIR_SPEED, RIGHT_WALL, UPPER_BOUND,
+        WALKING_SPEED, WORLD_HEIGHT, WORLD_WIDTH,
     },
     shuriken::ShurikenBundle,
     GameState,
@@ -16,6 +22,7 @@ pub struct PlayerBundle {
     sprite_bundle: SpriteSheetBundle,
     walking_animation_timer: WalkingAnimationTimer,
     flipping_animation_timer: FlippingAnimationTimer,
+    dimensions: Dimensions,
 }
 
 impl PlayerBundle {
@@ -42,11 +49,12 @@ impl PlayerBundle {
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
                 transform: Transform {
-                    translation: Vec3::new(0.0, 50.0, 2.0),
+                    translation: Vec3::new(0.0, 0.0, 2.0),
                     ..default()
                 },
                 ..default()
             },
+            dimensions: Dimensions(Vec2::new(42.0, 42.0)),
         }
     }
 }
@@ -71,17 +79,17 @@ pub fn player_attacking_system(
 
     if player.0 == PlayerState::Falling {
         sprite.index = 0;
+        sprite.flip_x = false;
     }
 
     if player.0 != PlayerState::Attacking {
         return;
     }
 
+    sprite.flip_x = false;
     if sprite.index == 3 {
         player.0 = PlayerState::Falling;
     }
-
-    sprite.flip_x = false;
 
     if attacking_timer.0.tick(time.delta()).just_finished() {
         sprite.index = (sprite.index + 1) % 4;
@@ -109,6 +117,7 @@ pub fn player_walking_animation(
         With<Player>,
     >,
     mut sfx_events: EventWriter<SFXEvents>,
+    game_state: Res<State<GameState>>,
 ) {
     let (mut player, mut walking_animation_timer, mut sprite) = query.single_mut();
 
@@ -117,6 +126,10 @@ pub fn player_walking_animation(
         && player.0 != PlayerState::WalkingRight
     {
         return;
+    }
+
+    if game_state.current() == &GameState::InGame {
+        player.0 = PlayerState::Falling;
     }
 
     println!("{:?}", player.0);
@@ -172,7 +185,7 @@ pub fn player_flipping_animation(
     }
 
     if sprite.index > 19 {
-        player.0 = PlayerState::Falling;
         game_state.set(GameState::InGame).unwrap();
+        player.0 = PlayerState::Falling;
     }
 }
