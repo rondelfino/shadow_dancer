@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::Wall,
-    constants::{ASPECT_RATIO, FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
+    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
     Dimensions,
 };
 
