@@ -3,9 +3,12 @@ use rand::random;
 
 use crate::{
     components::{
-        Enemy, EnemyState, Gravity, HitBox, InitialEnemySpeed, Velocity, WallHangingTimer,
+        Enemy, EnemyState, Gravity, HitBox, InitialEnemySpeed, MarkDespawn, Velocity,
+        WallHangingTimer,
     },
-    constants::{LEFT_WALL, RIGHT_WALL},
+    constants::{ASPECT_RATIO, LEFT_WALL, RIGHT_WALL, WORLD_HEIGHT, WORLD_WIDTH},
+    utils::{calculate_bounds, Bounds},
+    EnemyCount, SpawnTimer,
 };
 
 #[derive(Bundle)]
@@ -52,7 +55,8 @@ impl EnemyBundle {
         }
 
         let texture_handle = asset_server.load("enemy/red_ninja.png");
-        let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1, None, None);
+        let texture_atlas =
+            TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1, None, None);
         let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
         Ok(EnemyBundle {
@@ -91,6 +95,56 @@ impl EnemyBundle {
     }
 }
 
+pub fn enemy_movement(
+    time: Res<Time>,
+    mut query: Query<
+        (
+            Entity,
+            &mut Transform,
+            &mut Velocity,
+            &InitialEnemySpeed,
+            &mut WallHangingTimer,
+            &mut Enemy,
+        ),
+        With<Enemy>,
+    >,
+    mut commands: Commands,
+) {
+    for (
+        entity,
+        mut transform,
+        mut velocity,
+        initial_enemy_speed,
+        mut wall_hanging_timer,
+        mut enemy,
+    ) in query.iter_mut()
+    {
+        let Bounds { right, left, .. } = calculate_bounds(&transform, None);
+
+        let is_touching_left_bound = left < LEFT_WALL;
+        let is_touching_right_bound = right > RIGHT_WALL;
+
+        if (velocity.x < 0.0 && is_touching_left_bound)
+            || (velocity.x > 0.0 && is_touching_right_bound)
+        {
+            if wall_hanging_timer.0.tick(time.delta()).just_finished() {
+                velocity.x *= -1.0;
+                velocity.y = initial_enemy_speed.0;
+                enemy.0 = EnemyState::Airborne;
+            } else {
+                enemy.0 = EnemyState::WallHanging;
+            }
+        } else {
+            transform.translation.y += velocity.y * time.delta().as_secs_f32();
+            transform.translation.x += velocity.x * time.delta().as_secs_f32();
+        }
+
+        if transform.translation.y > (WORLD_HEIGHT / 2.0) + 100.0 && enemy.0 != EnemyState::Dead {
+            commands.entity(entity).insert(MarkDespawn);
+        }
+    }
+}
+
 pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSprite), With<Enemy>>) {
     for (enemy, velocity, mut sprite) in query.iter_mut() {
         if enemy.0 == EnemyState::WallHanging {
@@ -106,5 +160,35 @@ pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSpri
                 sprite.index = 0;
             }
         }
+    }
+}
+
+pub fn spawn_enemy(
+    commands: &mut Commands,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    commands
+        .spawn_empty()
+        .insert(EnemyBundle::pawn(asset_server, texture_atlases));
+}
+
+pub fn enemy_spawner(
+    time: Res<Time>,
+    mut timer: ResMut<SpawnTimer>,
+    mut commands: Commands,
+    mut count: ResMut<EnemyCount>,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    if timer.0.tick(time.delta()).just_finished() {
+        spawn_enemy(&mut commands, asset_server, texture_atlases);
+        count.0 += 1;
+    }
+}
+
+pub fn gravity_system(mut query: Query<(&mut Velocity, &mut Gravity), With<Enemy>>) {
+    for (mut velocity, gravity) in query.iter_mut() {
+        velocity.y -= gravity.0;
     }
 }
