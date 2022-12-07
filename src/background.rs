@@ -49,7 +49,7 @@ impl BackgroundBundle {
 //     });
 // }
 
-pub fn spawn_day_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_image_handle: Handle<Image> = asset_server.load("background/skybox.png");
 
     commands
