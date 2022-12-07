@@ -2,18 +2,16 @@ use bevy::prelude::*;
 
 use crate::{
     audio::SFXEvents,
-    calculate_bounds,
     components::{
         AttackingTimer, Dimensions, FlippingAnimationTimer, Player, PlayerState,
         WalkingAnimationTimer,
     },
-    constants::{
-        ASPECT_RATIO, LEFT_WALL, LOWER_BOUND, PLAYER_AIR_SPEED, RIGHT_WALL, UPPER_BOUND,
-        WALKING_SPEED, WORLD_HEIGHT, WORLD_WIDTH,
-    },
+    constants::{LEFT_WALL, LOWER_BOUND, PLAYER_AIR_SPEED, RIGHT_WALL, UPPER_BOUND, WALKING_SPEED},
     shuriken::ShurikenBundle,
-    GameState,
+    utils::*,
 };
+
+pub struct PlayerPlugin;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
@@ -56,6 +54,106 @@ impl PlayerBundle {
             },
             dimensions: Dimensions(Vec2::new(42.0, 42.0)),
         }
+    }
+}
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(spawn_player)
+            .add_system(player_controls.label(GameSystemLabel::Core))
+            .add_system_set(
+                SystemSet::on_update(GameState::StageIntro)
+                    .label(GameSystemLabel::Core)
+                    .with_system(player_walking_animation)
+                    .with_system(player_flipping_animation),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::InGame)
+                    .label(GameSystemLabel::Core)
+                    .with_system(player_attacking_system),
+            );
+    }
+}
+pub fn spawn_player(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    commands
+        .spawn_empty()
+        .insert(PlayerBundle::new(asset_server, texture_atlases));
+}
+
+pub fn player_controls(
+    keyboard_input: Res<Input<KeyCode>>,
+    game_state: Res<State<GameState>>,
+    time: Res<Time>,
+    mut query: Query<
+        (
+            &mut Player,
+            &mut Transform,
+            &TextureAtlasSprite,
+            &Dimensions,
+        ),
+        With<Player>,
+    >,
+) {
+    let (mut player, mut player_transform, sprite, dimensions) = query.single_mut();
+    let Bounds {
+        top,
+        right,
+        bottom,
+        left,
+    } = calculate_bounds(&player_transform, sprite.custom_size);
+
+    if player.0 == PlayerState::Falling || player.0 == PlayerState::Attacking {
+        if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left > LEFT_WALL {
+            player_transform.translation.x -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+        }
+
+        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D])
+            && right < RIGHT_WALL - dimensions.0.x / 2.0
+        {
+            player_transform.translation.x += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+        }
+
+        if keyboard_input.pressed(KeyCode::W) && top < UPPER_BOUND {
+            player_transform.translation.y += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+        }
+
+        if keyboard_input.pressed(KeyCode::S) && bottom > LOWER_BOUND {
+            player_transform.translation.y -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+        }
+
+        if keyboard_input.any_just_pressed(vec![KeyCode::Down, KeyCode::X]) {
+            player.0 = PlayerState::Attacking;
+        }
+    }
+
+    if game_state.current() == &GameState::StageIntro && player.0 != PlayerState::Flipping {
+        if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) {
+            player.0 = PlayerState::WalkingLeft;
+            if left > LEFT_WALL {
+                player_transform.translation.x -= WALKING_SPEED * time.delta().as_secs_f32();
+            }
+        }
+        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) {
+            player.0 = PlayerState::WalkingRight;
+            if right < RIGHT_WALL {
+                player_transform.translation.x += WALKING_SPEED * time.delta().as_secs_f32();
+            }
+        } else if keyboard_input.any_just_released(vec![
+            KeyCode::Right,
+            KeyCode::D,
+            KeyCode::Left,
+            KeyCode::A,
+        ]) {
+            player.0 = PlayerState::Idle;
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::C) && game_state.current() != &GameState::InGame {
+        player.0 = PlayerState::Flipping;
     }
 }
 
