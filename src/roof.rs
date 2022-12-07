@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     components::{Dimensions, MarkDespawn, Roof},
-    constants::{LOWER_BOUND, FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
+    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
     walls::spawn_walls,
 };
 
