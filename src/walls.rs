@@ -1,10 +1,4 @@
-use bevy::prelude::*;
-
-use crate::{
-    components::Wall,
-    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
-    Dimensions,
-};
+use crate::prelude::*;
 
 #[derive(Bundle)]
 pub struct WallBundle {
@@ -25,7 +19,7 @@ impl WallBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 translation: Vec3::new(
-                    LEFT_WALL - dimensions.0.x / 2.0,
+                    LEFT_WALL - dimensions.0.x,
                     (index as f32 * dimensions.0.y)
                         - (left_roof_height / 2.0 + dimensions.0.y / 2.0)
                         - 100.0,
@@ -56,7 +50,7 @@ impl WallBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 translation: Vec3::new(
-                    RIGHT_WALL + dimensions.0.x / 2.0,
+                    RIGHT_WALL + dimensions.0.x,
                     (index as f32 * dimensions.0.y)
                         - (right_roof_height / 2.0 + dimensions.0.y / 2.0)
                         - 100.0,
