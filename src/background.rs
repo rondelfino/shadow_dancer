@@ -1,9 +1,4 @@
-use bevy::prelude::*;
-
-use crate::{
-    components::{Background, Dimensions},
-    constants::{FALLING_SPEED, WORLD_HEIGHT, WORLD_WIDTH},
-};
+use crate::prelude::*;
 
 #[derive(Bundle)]
 pub struct BackgroundBundle {
@@ -22,7 +17,7 @@ impl BackgroundBundle {
             transform: Transform {
                 translation: Vec3::new(
                     0.0,
-                    -((dimensions.0.y * scale) / 2.0) + (WORLD_HEIGHT / 4.0) + 20.0,
+                    -((dimensions.0.y * scale) / 2.0) + (WORLD_HEIGHT / 4.0) + 45.0,
                     0.0,
                 ),
                 scale: Vec3::new(scale, scale, 0.0),
@@ -37,17 +32,6 @@ impl BackgroundBundle {
         }
     }
 }
-
-// pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
-//     let texture_image_handle = asset_server.load("background/skybox.png");
-
-//     commands.spawn(SpriteBundle {
-//         texture: texture_image_handle,
-//         transform: Transform::from_scale(Vec3::new(0.5, 0.5, 0.0)),
-
-//         ..default()
-//     });
-// }
 
 pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_image_handle: Handle<Image> = asset_server.load("background/skybox.png");
