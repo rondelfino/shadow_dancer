@@ -1,15 +1,4 @@
-use bevy::prelude::*;
-
-use crate::{
-    audio::SFXEvents,
-    components::{
-        AttackingTimer, Dimensions, FlippingAnimationTimer, Player, PlayerState,
-        WalkingAnimationTimer,
-    },
-    constants::{LEFT_WALL, LOWER_BOUND, PLAYER_AIR_SPEED, RIGHT_WALL, UPPER_BOUND, WALKING_SPEED},
-    shuriken::ShurikenBundle,
-    utils::*,
-};
+use crate::prelude::*;
 
 pub struct PlayerPlugin;
 
@@ -104,16 +93,14 @@ pub fn player_controls(
         right,
         bottom,
         left,
-    } = calculate_bounds(&player_transform, sprite.custom_size);
+    } = calculate_bounds(&player_transform, Some(dimensions.0));
 
     if player.0 == PlayerState::Falling || player.0 == PlayerState::Attacking {
         if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left > LEFT_WALL {
             player_transform.translation.x -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
-        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D])
-            && right < RIGHT_WALL - dimensions.0.x / 2.0
-        {
+        if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL {
             player_transform.translation.x += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
         }
 
@@ -230,8 +217,6 @@ pub fn player_walking_animation(
         player.0 = PlayerState::Falling;
     }
 
-    println!("{:?}", player.0);
-
     if player.0 == PlayerState::Idle {
         sprite.index = 7;
         return;
@@ -268,7 +253,7 @@ pub fn player_flipping_animation(
     mut sfx_events: EventWriter<SFXEvents>,
     mut game_state: ResMut<State<GameState>>,
 ) {
-    let (mut player, mut jumping_animation_timer, mut sprite) = query.single_mut();
+    let (mut player, mut flipping_animation_timer, mut sprite) = query.single_mut();
 
     if player.0 != PlayerState::Flipping {
         return;
@@ -278,12 +263,11 @@ pub fn player_flipping_animation(
         sprite.index = 14;
     }
 
-    if jumping_animation_timer.tick(time.delta()).just_finished() {
+    if flipping_animation_timer.tick(time.delta()).just_finished() {
         sprite.index = sprite.index + 1;
-    }
-
-    if sprite.index > 19 {
-        game_state.set(GameState::InGame).unwrap();
-        player.0 = PlayerState::Falling;
+        if sprite.index > 19 {
+            game_state.set(GameState::InGame).unwrap();
+            player.0 = PlayerState::Falling;
+        }
     }
 }
