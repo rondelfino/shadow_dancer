@@ -26,13 +26,13 @@ impl Default for GameScriptState {
     }
 }
 
-impl GameScriptState {
-    pub fn next(&mut self) {
-        println!("Moving from {:?}", self.current);
-        // self.current = match self.current {};
-        println!("to {:?}", self.current);
-    }
-}
+// impl GameScriptState {
+//     pub fn next(&mut self) {
+//         println!("Moving from {:?}", self.current);
+//         // self.current = match self.current {};
+//         println!("to {:?}", self.current);
+//     }
+// }
 
 fn load_state(
     mut assets_handler: AssetHandler,
