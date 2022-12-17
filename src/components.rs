@@ -1,13 +1,14 @@
-use bevy::prelude::*;
+use crate::prelude::*;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum EnemyState {
     Airborne,
     WallHanging,
     Dead,
 }
+
 #[derive(PartialEq, Eq, Debug)]
-pub enum PlayerState {
+pub enum PlayerAction {
     Idle,
     WalkingLeft,
     WalkingRight,
@@ -16,11 +17,18 @@ pub enum PlayerState {
     Attacking,
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub enum PlayerState {
+    Intro,
+    Main
+}
+
+
 #[derive(Component)]
 pub struct MarkDespawn;
 
 #[derive(Component)]
-pub struct Player(pub PlayerState);
+pub struct Player(pub PlayerAction, pub PlayerState);
 
 #[derive(Component)]
 pub struct Enemy(pub EnemyState);
