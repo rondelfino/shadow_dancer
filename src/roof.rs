@@ -1,26 +1,20 @@
-use bevy::prelude::*;
-
-use crate::{
-    components::{Dimensions, MarkDespawn, Roof},
-    constants::{FALLING_SPEED, LEFT_WALL, RIGHT_WALL},
-    walls::spawn_walls,
-};
+use crate::{assets::GameAssets, prelude::*};
 
 #[derive(Bundle)]
 pub struct RoofBundle {
     roof: Roof,
     dimensions: Dimensions,
-    sprite_bundle: SpriteSheetBundle,
+    sprite_bundle: SpriteBundle,
 }
 
 impl RoofBundle {
-    pub fn left_wall_roof(texture_atlas_handle: Handle<TextureAtlas>, y_pos: f32) -> Self {
+    pub fn left_roof(game_assets: &Res<GameAssets>, y_pos: f32) -> Self {
         let dimensions = Dimensions(Vec2::new(174.0, 224.0));
 
-        let sprite_bundle = SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
+        let sprite_bundle = SpriteBundle {
+            texture: game_assets.left_roof.clone(),
             transform: Transform {
-                translation: Vec3::new(LEFT_WALL + dimensions.0.x / 4.5, y_pos, 0.0),
+                translation: Vec3::new(LEFT_WALL + (dimensions.0.x / 2.0) - 48.0, y_pos, 1.0),
                 ..default()
             },
             ..default()
@@ -32,13 +26,13 @@ impl RoofBundle {
         }
     }
 
-    pub fn right_wall_roof(texture_atlas_handle: Handle<TextureAtlas>, y_pos: f32) -> Self {
+    pub fn right_roof(game_assets: &Res<GameAssets>, y_pos: f32) -> Self {
         let dimensions = Dimensions(Vec2::new(48.0, 224.0));
 
-        let sprite_bundle = SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
+        let sprite_bundle = SpriteBundle {
+            texture: game_assets.right_roof.clone(),
             transform: Transform {
-                translation: Vec3::new(RIGHT_WALL + dimensions.0.x / 2.0, y_pos, 0.0),
+                translation: Vec3::new(RIGHT_WALL + dimensions.0.x / 2.0, y_pos, 1.0),
                 ..default()
             },
             ..default()
@@ -46,57 +40,36 @@ impl RoofBundle {
 
         RoofBundle {
             roof: Roof,
-            dimensions: dimensions,
-            sprite_bundle: sprite_bundle,
+            dimensions,
+            sprite_bundle,
         }
     }
 }
 
-pub fn build_towers(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-) {
-    let texture_handle_left = asset_server.load("objects/left_roof.png");
-    let texture_atlas_left = TextureAtlas::from_grid(
-        texture_handle_left,
-        Vec2::new(174.0, 224.0),
-        1,
-        1,
-        None,
-        None,
-    );
-    let texture_atlas_handle_left = texture_atlases.add(texture_atlas_left);
+pub struct RoofPlugin;
+impl Plugin for RoofPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(build_towers))
+            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(roof_animator));
+    }
+}
 
-    let texture_handle_right = asset_server.load("objects/right_roof.png");
-    let texture_atlas_right = TextureAtlas::from_grid(
-        texture_handle_right,
-        Vec2::new(48.0, 224.0),
-        1,
-        1,
-        None,
-        None,
-    );
-    let texture_atlas_handle_right = texture_atlases.add(texture_atlas_right);
-
-    let left_wall_roof = RoofBundle::left_wall_roof(texture_atlas_handle_left.clone(), -100.0);
+pub fn build_towers(mut commands: Commands, game_assets: Res<GameAssets>) {
+    let left_wall_roof = RoofBundle::left_roof(&game_assets, -100.0);
 
     let left_roof_height = left_wall_roof.dimensions.0.y;
 
-    commands.spawn_empty().insert(left_wall_roof);
+    commands.spawn(left_wall_roof);
 
-    let right_wall_roof = RoofBundle::right_wall_roof(texture_atlas_handle_right.clone(), -100.0);
+    let right_wall_roof = RoofBundle::right_roof(&game_assets, -100.0);
 
     let right_roof_height = right_wall_roof.dimensions.0.y;
-    commands.spawn_empty().insert(right_wall_roof);
+    commands.spawn(right_wall_roof);
 
-    spawn_walls(
-        commands,
-        asset_server,
-        texture_atlases,
-        left_roof_height,
-        right_roof_height,
-    );
+    for i in -4..=0 {
+        commands.spawn(WallBundle::left_wall(&game_assets, i, left_roof_height));
+        commands.spawn(WallBundle::right_wall(&game_assets, i, right_roof_height));
+    }
 }
 
 pub fn roof_animator(

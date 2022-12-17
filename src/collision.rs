@@ -1,14 +1,12 @@
-use bevy::{math::Vec3Swizzles, prelude::*, sprite::collide_aabb::collide};
+use crate::{assets::GameAssets, prelude::*};
 
-use crate::{
-    audio::SFXEvents,
-    components::{Enemy, EnemyState, HitBox, MarkDespawn, Shuriken},
-    death_effect::DeathEffectBundle,
-};
-
+pub struct CollisionPlugin;
+impl Plugin for CollisionPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
+    }
+}
 pub fn collision_system(
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut commands: Commands,
     shuriken_query: Query<(Entity, &Transform, &HitBox), (With<Shuriken>, Without<MarkDespawn>)>,
     mut enemy_query: Query<
@@ -16,13 +14,8 @@ pub fn collision_system(
         (With<Enemy>, Without<MarkDespawn>),
     >,
     mut sfx_events: EventWriter<SFXEvents>,
+    game_assets: Res<GameAssets>,
 ) {
-    let texture_handle = asset_server.load("effects/death.png");
-
-    let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 95.0), 4, 1, None, None);
-    let death_effect_atlas_handle = texture_atlases.add(texture_atlas);
-
     for (shuriken_entity, shuriken_transform, shuriken_hitbox) in shuriken_query.iter() {
         let shurkien_scale = shuriken_transform.scale.xy();
 
@@ -42,8 +35,8 @@ pub fn collision_system(
                 commands.entity(enemy_entity).insert(MarkDespawn);
                 commands.entity(shuriken_entity).insert(MarkDespawn);
 
-                commands.spawn_empty().insert(DeathEffectBundle::new(
-                    death_effect_atlas_handle.clone(),
+                commands.spawn(DeathEffectBundle::new(
+                    &game_assets,
                     enemy_transform.translation,
                 ));
 

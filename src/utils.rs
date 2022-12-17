@@ -1,6 +1,4 @@
-use bevy::prelude::*;
-
-use crate::components::MarkDespawn;
+use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
 pub enum GameSystemLabel {
@@ -8,14 +6,17 @@ pub enum GameSystemLabel {
     Cleanup,
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Copy)]
 pub enum GameState {
+    Initial,
     Splash,
     MainMenu,
-    StageIntro,
     InGame,
     Paused,
+    Loading,
+    LoadWorld,
 }
+
 pub struct Bounds {
     pub top: f32,
     pub right: f32,

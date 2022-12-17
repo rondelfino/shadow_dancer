@@ -1,9 +1,4 @@
-use bevy::prelude::*;
-
-use crate::{
-    components::{AnimationTimer, Effect, MarkDespawn, Velocity},
-    constants::FALLING_SPEED,
-};
+use crate::{prelude::*, assets::GameAssets};
 
 #[derive(Bundle)]
 pub struct DeathEffectBundle {
@@ -14,13 +9,13 @@ pub struct DeathEffectBundle {
 }
 
 impl DeathEffectBundle {
-    pub fn new(texture_atlas_handle: Handle<TextureAtlas>, starting_pos: Vec3) -> Self {
+    pub fn new(game_assets: &Res<GameAssets>, starting_pos: Vec3) -> Self {
         DeathEffectBundle {
             effect: Effect,
             animation_timer: AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             velocity: Velocity(Vec2::new(0.0, FALLING_SPEED)),
             sprite_bundle: SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
+                texture_atlas: game_assets.death_effect.clone(),
                 transform: Transform {
                     translation: starting_pos,
                     ..Default::default()

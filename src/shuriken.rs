@@ -1,6 +1,4 @@
-use bevy::prelude::*;
-
-use crate::{components::*, constants::WORLD_HEIGHT};
+use crate::{assets::GameAssets, prelude::*};
 
 #[derive(Bundle)]
 pub struct ShurikenBundle {
@@ -8,26 +6,18 @@ pub struct ShurikenBundle {
     animation_timer: AnimationTimer,
     velocity: Velocity,
     hitbox: HitBox,
-    sprite_bundle: SpriteSheetBundle,
+    sprite_bundle: SpriteBundle,
 }
 
 impl ShurikenBundle {
-    pub fn new(
-        asset_server: Res<AssetServer>,
-        mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-        starting_pos: Vec3,
-    ) -> Self {
-        let texture_handle = asset_server.load("objects/shuriken.png");
-        let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(8.0, 8.0), 1, 1, None, None);
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    pub fn new(game_assets: Res<GameAssets>, starting_pos: Vec3) -> Self {
         ShurikenBundle {
             shuriken: Shuriken,
             animation_timer: AnimationTimer(Timer::from_seconds(2.0, TimerMode::Repeating)),
             velocity: Velocity(Vec2::new(0.0, -400.0)),
             hitbox: HitBox(Vec2::new(8.0, 8.0)),
-            sprite_bundle: SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
+            sprite_bundle: SpriteBundle {
+                texture: game_assets.shuriken.clone(),
                 transform: Transform {
                     translation: starting_pos,
                     ..Default::default()

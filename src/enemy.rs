@@ -1,15 +1,4 @@
-use bevy::prelude::*;
-use rand::random;
-
-use crate::{
-    components::{
-        Enemy, EnemyState, Gravity, HitBox, InitialEnemySpeed, MarkDespawn, Velocity,
-        WallHangingTimer,
-    },
-    constants::{ASPECT_RATIO, LEFT_WALL, RIGHT_WALL, WORLD_HEIGHT, WORLD_WIDTH},
-    utils::{calculate_bounds, Bounds},
-    EnemyCount, SpawnTimer,
-};
+use crate::{assets::GameAssets, prelude::*};
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
@@ -36,8 +25,7 @@ impl EnemyBundle {
         gravity: f32,
         enemy_speed: f32,
         trajectory: Vec2,
-        asset_server: Res<AssetServer>,
-        mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+        game_assets: Res<GameAssets>,
     ) -> Result<Self, String> {
         if (trajectory.x, trajectory.y) < (0.0, 0.0) || (trajectory.x, trajectory.y) > (1.0, 1.0) {
             return Err("The trajectory must be between 0 and 1".to_string());
@@ -54,11 +42,6 @@ impl EnemyBundle {
             starting_x = LEFT_WALL;
         }
 
-        let texture_handle = asset_server.load("enemy/red_ninja.png");
-        let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(40.0, 65.0), 4, 1, None, None);
-        let texture_atlas_handle = texture_atlases.add(texture_atlas);
-
         Ok(EnemyBundle {
             enemy: Enemy(EnemyState::Airborne),
             velocity: Velocity(Vec2::new(
@@ -68,7 +51,7 @@ impl EnemyBundle {
             gravity: Gravity(gravity),
             initial_enemy_speed: InitialEnemySpeed(enemy_speed * trajectory.y),
             sprite_bundle: SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
+                texture_atlas: game_assets.red_ninja.clone(),
                 transform: Transform {
                     translation: Vec3::new(starting_x, -275.0, 1.0),
                     ..default()
@@ -80,18 +63,8 @@ impl EnemyBundle {
         })
     }
 
-    pub fn pawn(
-        asset_server: Res<AssetServer>,
-        texture_atlases: ResMut<Assets<TextureAtlas>>,
-    ) -> Self {
-        Self::new(
-            1.75,
-            300.0,
-            Vec2::new(1.0, 1.0),
-            asset_server,
-            texture_atlases,
-        )
-        .unwrap()
+    pub fn pawn(game_assets: Res<GameAssets>) -> Self {
+        Self::new(1.75, 300.0, Vec2::new(1.0, 1.0), game_assets).unwrap()
     }
 }
 
@@ -163,14 +136,8 @@ pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSpri
     }
 }
 
-pub fn spawn_enemy(
-    commands: &mut Commands,
-    asset_server: Res<AssetServer>,
-    texture_atlases: ResMut<Assets<TextureAtlas>>,
-) {
-    commands
-        .spawn_empty()
-        .insert(EnemyBundle::pawn(asset_server, texture_atlases));
+pub fn spawn_enemy(commands: &mut Commands, game_assets: Res<GameAssets>) {
+    commands.spawn(EnemyBundle::pawn(game_assets));
 }
 
 pub fn enemy_spawner(
@@ -178,11 +145,10 @@ pub fn enemy_spawner(
     mut timer: ResMut<SpawnTimer>,
     mut commands: Commands,
     mut count: ResMut<EnemyCount>,
-    asset_server: Res<AssetServer>,
-    texture_atlases: ResMut<Assets<TextureAtlas>>,
+    game_assets: Res<GameAssets>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        spawn_enemy(&mut commands, asset_server, texture_atlases);
+        spawn_enemy(&mut commands, game_assets);
         count.0 += 1;
     }
 }

@@ -1,22 +1,18 @@
-use crate::prelude::*;
+use crate::{assets::GameAssets, prelude::*};
 
 #[derive(Bundle)]
 pub struct WallBundle {
     wall: Wall,
     dimensions: Dimensions,
-    sprite_bundle: SpriteSheetBundle,
+    sprite_bundle: SpriteBundle,
 }
 
 impl WallBundle {
-    pub fn left_wall(
-        texture_atlas_handle: Handle<TextureAtlas>,
-        index: i32,
-        left_roof_height: f32,
-    ) -> Self {
-        let dimensions = Dimensions(Vec2::new(48.0, 244.0));
+    pub fn left_wall(game_assets: &Res<GameAssets>, index: i32, left_roof_height: f32) -> Self {
+        let dimensions = Dimensions(Vec2::new(48.0, 224.0));
 
-        let sprite_bundle = SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
+        let sprite_bundle = SpriteBundle {
+            texture: game_assets.left_wall.clone(),
             transform: Transform {
                 translation: Vec3::new(
                     LEFT_WALL - dimensions.0.x / 2.0,
@@ -37,15 +33,11 @@ impl WallBundle {
         }
     }
 
-    pub fn right_wall(
-        texture_atlas_handle: Handle<TextureAtlas>,
-        index: i32,
-        right_roof_height: f32,
-    ) -> Self {
-        let dimensions = Dimensions(Vec2::new(48.0, 244.0));
+    pub fn right_wall(game_assets: &Res<GameAssets>, index: i32, right_roof_height: f32) -> Self {
+        let dimensions = Dimensions(Vec2::new(48.0, 224.0));
 
-        let sprite_bundle = SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
+        let sprite_bundle = SpriteBundle {
+            texture: game_assets.right_wall.clone(),
             transform: Transform {
                 translation: Vec3::new(
                     RIGHT_WALL + dimensions.0.x / 2.0,
@@ -67,48 +59,9 @@ impl WallBundle {
     }
 }
 
-pub fn spawn_walls(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    left_roof_height: f32,
-    right_roof_height: f32,
-) {
-    let left_texture_handle = asset_server.load("background/left_wall.png");
-    let left_texture_atlas = TextureAtlas::from_grid(
-        left_texture_handle,
-        Vec2::new(48.0, 244.0),
-        2,
-        1,
-        None,
-        None,
-    );
-    let left_texture_atlas_handle = texture_atlases.add(left_texture_atlas);
-
-    let right_texture_handle = asset_server.load("background/right_wall.png");
-    let right_texture_atlas = TextureAtlas::from_grid(
-        right_texture_handle,
-        Vec2::new(48.0, 244.0),
-        2,
-        1,
-        None,
-        None,
-    );
-    let right_texture_atlas_handle = texture_atlases.add(right_texture_atlas);
-
-    //spawns walls that span offscreen
-    for i in -4..=0 {
-        commands.spawn_empty().insert(WallBundle::left_wall(
-            left_texture_atlas_handle.clone(),
-            i,
-            left_roof_height,
-        ));
-        commands.spawn_empty().insert(WallBundle::right_wall(
-            right_texture_atlas_handle.clone(),
-            i,
-            right_roof_height,
-        ));
-    }
+pub struct WallPlugin;
+impl Plugin for WallPlugin {
+    fn build(&self, app: &mut App) {}
 }
 
 pub fn wall_animator(mut query: Query<(&mut Transform, &Dimensions), With<Wall>>, time: Res<Time>) {
