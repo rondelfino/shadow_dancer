@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*};
+use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
 
 #[derive(Bundle)]
 pub struct WallBundle {
@@ -61,7 +61,13 @@ impl WallBundle {
 
 pub struct WallPlugin;
 impl Plugin for WallPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_run_criteria(run_after_bonus_stage_intro)
+                .with_system(wall_animator),
+        );
+    }
 }
 
 pub fn wall_animator(mut query: Query<(&mut Transform, &Dimensions), With<Wall>>, time: Res<Time>) {

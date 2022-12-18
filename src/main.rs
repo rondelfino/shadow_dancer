@@ -31,6 +31,8 @@ use game_script::GameScriptPlugin;
 
 use crate::prelude::*;
 
+use bevy::ecs::schedule::ShouldRun;
+
 mod asset_loading;
 mod assets;
 mod audio;
@@ -48,6 +50,14 @@ mod roof;
 mod shuriken;
 mod utils;
 mod walls;
+
+pub fn run_after_bonus_stage_intro(event: Res<BonusStageEvents>) -> ShouldRun {
+    if *event == BonusStageEvents::Start {
+        ShouldRun::Yes
+    } else {
+        ShouldRun::No
+    }
+}
 
 fn main() {
     App::new()
@@ -68,6 +78,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
+        .init_resource::<BonusStageEvents>()
         .add_plugin(CameraPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(GameAudioPlugin)
@@ -77,24 +88,20 @@ fn main() {
         .add_plugin(CollisionPlugin)
         .add_plugin(GameScriptPlugin)
         .add_plugin(RoofPlugin)
+        .add_plugin(EnemyPlugin)
+        .add_plugin(WallPlugin)
+        .add_plugin(ShurikenPlugin)
         .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .insert_resource(EnemyCount(0))
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
                 .label(GameSystemLabel::Core)
-                .with_system(enemy_spawner)
-                .with_system(shuriken_movement)
-                .with_system(shuriken_animator)
-                .with_system(enemy_animator)
-                .with_system(enemy_movement)
-                .with_system(gravity_system)
-                .with_system(death_effect_animator)
-                .with_system(wall_animator),
+                .with_system(death_effect_animator),
         )
         .add_system(
             despawner
-                .after(GameSystemLabel::Core)
-                .label(GameSystemLabel::Cleanup),
+                .label(GameSystemLabel::Cleanup)
+                .after(GameSystemLabel::Core),
         )
         .add_state(GameState::Initial)
         .add_system_set(SystemSet::on_update(GameState::Initial).with_system(bootstrap))

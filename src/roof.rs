@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*};
+use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
 
 #[derive(Bundle)]
 pub struct RoofBundle {
@@ -49,8 +49,17 @@ impl RoofBundle {
 pub struct RoofPlugin;
 impl Plugin for RoofPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(build_towers))
-            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(roof_animator));
+        app.add_system_set(
+            SystemSet::on_enter(GameState::InGame)
+                .label(GameSystemLabel::Core)
+                .with_system(build_towers),
+        )
+        .add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .label(GameSystemLabel::Core)
+                .with_run_criteria(run_after_bonus_stage_intro)
+                .with_system(roof_animator),
+        );
     }
 }
 

@@ -1,3 +1,5 @@
+
+
 use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
@@ -16,6 +18,15 @@ pub enum GameState {
     Loading,
     LoadWorld,
 }
+
+#[derive(Default, Resource, PartialEq, Eq)]
+pub enum BonusStageEvents {
+    #[default]
+    Pause,
+    Start,
+}
+
+
 
 pub struct Bounds {
     pub top: f32,

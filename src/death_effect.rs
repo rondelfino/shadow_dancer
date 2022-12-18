@@ -1,4 +1,4 @@
-use crate::{prelude::*, assets::GameAssets};
+use crate::{assets::GameAssets, prelude::*};
 
 #[derive(Bundle)]
 pub struct DeathEffectBundle {
@@ -46,6 +46,7 @@ pub fn death_effect_animator(
         if animation_timer.0.tick(time.delta()).just_finished() {
             if sprite.index >= 3 {
                 commands.entity(entity).insert(MarkDespawn);
+           
             }
 
             if sprite.index < 3 {
