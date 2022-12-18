@@ -3,7 +3,11 @@ use crate::{assets::GameAssets, prelude::*};
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .label(GameSystemLabel::Core)
+                .with_system(collision_system),
+        );
     }
 }
 pub fn collision_system(
@@ -33,7 +37,9 @@ pub fn collision_system(
                 sfx_events.send(SFXEvents::CollisionSound);
 
                 commands.entity(enemy_entity).insert(MarkDespawn);
+           
                 commands.entity(shuriken_entity).insert(MarkDespawn);
+           
 
                 commands.spawn(DeathEffectBundle::new(
                     &game_assets,
