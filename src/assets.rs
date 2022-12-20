@@ -71,5 +71,10 @@ impl AssetsPlugin {
             &mut game_assets.bgm_01,
             "music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg",
         );
+
+        asset_handler.add_font(
+            &mut game_assets.menu_font,
+            "ui/shadow-dancer-the-secret-of-shinobi-smd.ttf",
+        )
     }
 }
