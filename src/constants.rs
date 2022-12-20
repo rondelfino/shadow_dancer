@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 pub const WORLD_WIDTH: f32 = 480.0;
 pub const WORLD_HEIGHT: f32 = 640.0;
 
@@ -8,7 +10,11 @@ pub const LEFT_WALL: f32 = -WORLD_WIDTH / 2.0;
 pub const RIGHT_WALL: f32 = WORLD_WIDTH / 2.0;
 pub const UPPER_BOUND: f32 = (WORLD_HEIGHT / 2.0) * CAMERA_SCALE - 20.5;
 pub const LOWER_BOUND: f32 = -(WORLD_HEIGHT / 2.0) * CAMERA_SCALE + 20.5;
+pub const BONUS_STAGE_INTRO_RIGHT_BOUNDARY: f32 = -WORLD_WIDTH / 4.5;
+pub const BONUS_STAGE_SPAWN_POS: Vec2 = Vec2::new(-WORLD_WIDTH / 3.5, -28.0);
 
 pub const PLAYER_AIR_SPEED: f32 = 350.0;
 pub const FALLING_SPEED: f32 = 200.0;
 pub const WALKING_SPEED: f32 = 150.0;
+pub const TERMINAL_VELOCITY: f32 = 30.0;
+pub const PLAYER_FLIPPING_SPEED: f32 = 250.0;

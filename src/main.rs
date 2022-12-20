@@ -14,6 +14,10 @@ mod prelude {
     pub use crate::shuriken::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
+    pub use crate::asset_loading::*;
+    pub use crate::assets::*;
+    pub use crate::game_script::*;
+    
     pub use bevy::{
         math::Vec3Swizzles, prelude::*, render::camera::ScalingMode, sprite::collide_aabb::collide,
     };
@@ -21,17 +25,13 @@ mod prelude {
         AudioApp, AudioChannel, AudioControl, AudioEasing, AudioPlugin as KiraAudioPlugin,
         AudioSource as KiraAudioSource, AudioTween,
     };
+    
     pub use rand::random;
     pub use std::time::Duration;
+    pub use bevy::ecs::schedule::ShouldRun;
 }
 
-use asset_loading::AssetsLoadingPlugin;
-use assets::AssetsPlugin;
-use game_script::GameScriptPlugin;
-
 use crate::prelude::*;
-
-use bevy::ecs::schedule::ShouldRun;
 
 mod asset_loading;
 mod assets;

@@ -8,6 +8,8 @@ pub struct PlayerBundle {
     walking_animation_timer: WalkingAnimationTimer,
     flipping_animation_timer: FlippingAnimationTimer,
     dimensions: Dimensions,
+    gravity: Gravity,
+    velocity: Velocity,
 }
 
 impl PlayerBundle {
@@ -26,12 +28,14 @@ impl PlayerBundle {
             sprite_bundle: SpriteSheetBundle {
                 texture_atlas: game_assets.musashi.clone(),
                 transform: Transform {
-                    translation: Vec3::new(0.0, 0.0, 2.0),
+                    translation: Vec3::new(BONUS_STAGE_SPAWN_POS.x, BONUS_STAGE_SPAWN_POS.y, 2.0),
                     ..default()
                 },
                 ..default()
             },
             dimensions: Dimensions(Vec2::new(42.0, 42.0)),
+            gravity: Gravity(1.75),
+            velocity: Velocity(Vec2::new(0.0, PLAYER_FLIPPING_SPEED)),
         }
     }
 }
@@ -111,7 +115,7 @@ pub fn player_controls(
             }
             if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) {
                 player.0 = PlayerAction::WalkingRight;
-                if right < RIGHT_WALL {
+                if right < BONUS_STAGE_INTRO_RIGHT_BOUNDARY {
                     player_transform.translation.x += WALKING_SPEED * time.delta().as_secs_f32();
                 }
             } else if keyboard_input.any_just_released(vec![
@@ -221,28 +225,53 @@ pub fn player_flipping_animation(
             &mut Player,
             &mut FlippingAnimationTimer,
             &mut TextureAtlasSprite,
+            &mut Transform,
+            &Gravity,
+            &mut Velocity,
         ),
         With<Player>,
     >,
     mut sfx_events: EventWriter<SFXEvents>,
     mut bonus_stage_events: ResMut<BonusStageEvents>,
 ) {
-    let (mut player, mut flipping_animation_timer, mut sprite) = query.single_mut();
+    for (
+        mut player,
+        mut flipping_animation_timer,
+        mut sprite,
+        mut transform,
+        gravity,
+        mut velocity,
+    ) in query.iter_mut()
+    {
+        if player.0 != PlayerAction::Flipping {
+            return;
+        }
 
-    if player.0 != PlayerAction::Flipping {
-        return;
-    }
+        if player.0 == PlayerAction::Flipping && sprite.index < 14 {
+            sprite.index = 14;
+        }
 
-    if player.0 == PlayerAction::Flipping && sprite.index < 14 {
-        sprite.index = 14;
-    }
+        if sprite.index == 15 {
+            if transform.translation.y < TERMINAL_VELOCITY {
+                transform.translation.y +=
+                    time.delta_seconds() * (velocity.y + time.delta_seconds() * gravity.0 / 2.0);
+                velocity.y += gravity.0 * time.delta_seconds();
 
-    if flipping_animation_timer.tick(time.delta()).just_finished() {
-        sprite.index = sprite.index + 1;
-        if sprite.index > 19 {
-            player.0 = PlayerAction::Falling;
-            player.1 = PlayerState::Main;
-            *bonus_stage_events = BonusStageEvents::Start;
+                continue;
+            }
+        } else if sprite.index > 15 {
+            transform.translation.y -=
+                time.delta_seconds() * (velocity.y + time.delta_seconds() * gravity.0 / 2.0);
+            velocity.y -= gravity.0 * time.delta_seconds();
+        }
+
+        if flipping_animation_timer.tick(time.delta()).just_finished() {
+            sprite.index = sprite.index + 1;
+            if sprite.index > 19 {
+                player.0 = PlayerAction::Falling;
+                player.1 = PlayerState::Main;
+                *bonus_stage_events = BonusStageEvents::Start;
+            }
         }
     }
 }
