@@ -1,5 +1,7 @@
 #![allow(clippy::type_complexity)]
 mod prelude {
+    pub use crate::asset_loading::*;
+    pub use crate::assets::*;
     pub use crate::audio::*;
     pub use crate::background::*;
     pub use crate::camera::*;
@@ -8,16 +10,14 @@ mod prelude {
     pub use crate::constants::*;
     pub use crate::death_effect::*;
     pub use crate::enemy::*;
+    pub use crate::game_script::*;
     pub use crate::player::*;
     pub use crate::resources::*;
     pub use crate::roof::*;
     pub use crate::shuriken::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
-    pub use crate::asset_loading::*;
-    pub use crate::assets::*;
-    pub use crate::game_script::*;
-    
+
     pub use bevy::{
         math::Vec3Swizzles, prelude::*, render::camera::ScalingMode, sprite::collide_aabb::collide,
     };
@@ -25,10 +25,10 @@ mod prelude {
         AudioApp, AudioChannel, AudioControl, AudioEasing, AudioPlugin as KiraAudioPlugin,
         AudioSource as KiraAudioSource, AudioTween,
     };
-    
+
+    pub use bevy::ecs::schedule::ShouldRun;
     pub use rand::random;
     pub use std::time::Duration;
-    pub use bevy::ecs::schedule::ShouldRun;
 }
 
 use crate::prelude::*;
@@ -93,16 +93,8 @@ fn main() {
         .add_plugin(ShurikenPlugin)
         .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .insert_resource(EnemyCount(0))
-        .add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .label(GameSystemLabel::Core)
-                .with_system(death_effect_animator),
-        )
-        .add_system(
-            despawner
-                .label(GameSystemLabel::Cleanup)
-                .after(GameSystemLabel::Core),
-        )
+        .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
+        .add_system_to_stage(CoreStage::PostUpdate, despawner)
         .add_state(GameState::Initial)
         .add_system_set(SystemSet::on_update(GameState::Initial).with_system(bootstrap))
         .run();

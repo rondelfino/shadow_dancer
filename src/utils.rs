@@ -1,12 +1,4 @@
-
-
 use crate::prelude::*;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
-pub enum GameSystemLabel {
-    Core,
-    Cleanup,
-}
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Copy)]
 pub enum GameState {
@@ -25,8 +17,6 @@ pub enum BonusStageEvents {
     Pause,
     Start,
 }
-
-
 
 pub struct Bounds {
     pub top: f32,
@@ -51,6 +41,6 @@ pub fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
 
 pub fn despawner(mut commands: Commands, query: Query<Entity, With<MarkDespawn>>) {
     for entity in query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 }

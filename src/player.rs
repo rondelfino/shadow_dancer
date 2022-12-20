@@ -44,20 +44,20 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .label(GameSystemLabel::Core)
+                
                 .with_run_criteria(run_after_bonus_stage_intro)
                 .with_system(player_attacking_system),
         )
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .label(GameSystemLabel::Core)
+                
                 .with_system(player_controls)
                 .with_system(player_walking_animation)
                 .with_system(player_flipping_animation),
         )
         .add_system_set(
             SystemSet::on_enter(GameState::InGame)
-                .label(GameSystemLabel::Core)
+                
                 .with_system(spawn_player),
         );
     }

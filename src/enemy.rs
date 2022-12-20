@@ -73,7 +73,7 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .label(GameSystemLabel::Core)
+                
                 .with_run_criteria(run_after_bonus_stage_intro)
                 .with_system(enemy_spawner)
                 .with_system(enemy_movement)

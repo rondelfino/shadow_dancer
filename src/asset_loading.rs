@@ -11,7 +11,7 @@ impl Plugin for AssetsLoadingPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<AssetLoading>()
             .init_resource::<NextState>()
-            .add_system_set(SystemSet::on_update(GameState::Loading).label(GameSystemLabel::Core).with_system(check_assets));
+            .add_system_set(SystemSet::on_update(GameState::Loading).with_system(check_assets));
     }
 }
 

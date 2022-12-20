@@ -25,7 +25,7 @@ impl Plugin for GameAudioPlugin {
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(play_sfx.after(collision_system))
-                    .label(GameSystemLabel::Core),
+                    ,
             );
     }
 }

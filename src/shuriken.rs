@@ -33,7 +33,7 @@ impl Plugin for ShurikenPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                .label(GameSystemLabel::Core)
+                
                 .with_system(shuriken_movement)
                 .with_system(shuriken_animator),
         );
