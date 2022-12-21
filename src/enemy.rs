@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
+use crate::{assets::GameAssets, prelude::*, pause_game};
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
@@ -72,9 +72,8 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                
-                .with_run_criteria(run_after_bonus_stage_intro)
+            SystemSet::on_update(GameState::InGame)      
+                .with_run_criteria(pause_game)
                 .with_system(enemy_spawner)
                 .with_system(enemy_movement)
                 .with_system(enemy_animator)

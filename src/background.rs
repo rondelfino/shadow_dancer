@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
+use crate::{prelude::*, pause_game};
 
 #[derive(Bundle)]
 pub struct BackgroundBundle {
@@ -38,7 +38,9 @@ impl Plugin for BackgroundPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::InGame).with_system(spawn_background))
             .add_system_set(
-                SystemSet::on_update(GameState::InGame).with_run_criteria(run_after_bonus_stage_intro).with_system(background_animator),
+                SystemSet::on_update(GameState::InGame)
+                    .with_run_criteria(pause_game)
+                    .with_system(background_animator),
             );
     }
 }

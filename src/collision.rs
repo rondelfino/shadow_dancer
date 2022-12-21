@@ -5,11 +5,13 @@ impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
+                .with_system(collision_system)
                 
-                .with_system(collision_system),
         );
     }
 }
+
+
 pub fn collision_system(
     mut commands: Commands,
     shuriken_query: Query<(Entity, &Transform, &HitBox), (With<Shuriken>, Without<MarkDespawn>)>,
@@ -37,9 +39,8 @@ pub fn collision_system(
                 sfx_events.send(SFXEvents::CollisionSound);
 
                 commands.entity(enemy_entity).insert(MarkDespawn);
-           
+
                 commands.entity(shuriken_entity).insert(MarkDespawn);
-           
 
                 commands.spawn(DeathEffectBundle::new(
                     &game_assets,

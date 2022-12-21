@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
+use crate::{assets::GameAssets, prelude::*, pause_game};
 
 #[derive(Bundle)]
 pub struct RoofBundle {
@@ -57,7 +57,7 @@ impl Plugin for RoofPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
                 
-                .with_run_criteria(run_after_bonus_stage_intro)
+                .with_run_criteria(pause_game)
                 .with_system(roof_animator),
         );
     }

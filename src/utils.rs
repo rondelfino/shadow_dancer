@@ -9,13 +9,7 @@ pub enum GameState {
     Paused,
     Loading,
     LoadWorld,
-}
-
-#[derive(Default, Resource, PartialEq, Eq)]
-pub enum BonusStageEvents {
-    #[default]
-    Pause,
-    Start,
+    EndStage,
 }
 
 pub struct Bounds {
@@ -39,8 +33,8 @@ pub fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
     }
 }
 
-pub fn despawner(mut commands: Commands, query: Query<Entity, With<MarkDespawn>>) {
-    for entity in query.iter() {
+pub fn despawner<T: Component> (mut commands: Commands, to_despawn: Query<Entity, With<T>>,) {
+    for entity in to_despawn.iter() {
         commands.entity(entity).despawn_recursive();
     }
 }

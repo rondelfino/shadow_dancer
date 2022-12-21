@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*, run_after_bonus_stage_intro};
+use crate::{assets::GameAssets, prelude::*, pause_game};
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
@@ -44,22 +44,16 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::InGame)
-                
-                .with_run_criteria(run_after_bonus_stage_intro)
+                .with_run_criteria(pause_game)
                 .with_system(player_attacking_system),
         )
         .add_system_set(
             SystemSet::on_update(GameState::InGame)
-                
                 .with_system(player_controls)
                 .with_system(player_walking_animation)
                 .with_system(player_flipping_animation),
         )
-        .add_system_set(
-            SystemSet::on_enter(GameState::InGame)
-                
-                .with_system(spawn_player),
-        );
+        .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(spawn_player));
     }
 }
 pub fn spawn_player(mut commands: Commands, game_assets: Res<GameAssets>) {
@@ -232,7 +226,7 @@ pub fn player_flipping_animation(
         With<Player>,
     >,
     mut sfx_events: EventWriter<SFXEvents>,
-    mut bonus_stage_events: ResMut<BonusStageEvents>,
+    mut bonus_stage_events: ResMut<PauseEvent>,
 ) {
     for (
         mut player,
@@ -270,7 +264,7 @@ pub fn player_flipping_animation(
             if sprite.index > 19 {
                 player.0 = PlayerAction::Falling;
                 player.1 = PlayerState::Main;
-                *bonus_stage_events = BonusStageEvents::Start;
+                *bonus_stage_events = PauseEvent::Unpaused;
             }
         }
     }

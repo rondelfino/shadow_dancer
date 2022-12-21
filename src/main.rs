@@ -11,6 +11,7 @@ mod prelude {
     pub use crate::death_effect::*;
     pub use crate::enemy::*;
     pub use crate::game_script::*;
+    pub use crate::pause_menu::*;
     pub use crate::player::*;
     pub use crate::resources::*;
     pub use crate::roof::*;
@@ -44,6 +45,7 @@ mod constants;
 mod death_effect;
 mod enemy;
 mod game_script;
+mod pause_menu;
 mod player;
 mod resources;
 mod roof;
@@ -51,11 +53,17 @@ mod shuriken;
 mod utils;
 mod walls;
 
-pub fn run_after_bonus_stage_intro(event: Res<BonusStageEvents>) -> ShouldRun {
-    if *event == BonusStageEvents::Start {
-        ShouldRun::Yes
-    } else {
-        ShouldRun::No
+pub fn pause_game(event: Res<PauseEvent>, query: Query<&Player>) -> ShouldRun {
+    let player = query.get_single();
+    match player {
+        Ok(p) => {
+            if *event == PauseEvent::Unpaused && p.1 == PlayerState::Main {
+                ShouldRun::Yes
+            } else {
+                ShouldRun::No
+            }
+        }
+        Err(_) => ShouldRun::No,
     }
 }
 
@@ -78,7 +86,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .init_resource::<BonusStageEvents>()
+        .init_resource::<PauseEvent>()
         .add_plugin(CameraPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(GameAudioPlugin)
@@ -91,10 +99,11 @@ fn main() {
         .add_plugin(EnemyPlugin)
         .add_plugin(WallPlugin)
         .add_plugin(ShurikenPlugin)
+        .add_plugin(PauseMenuPlugin)
         .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .insert_resource(EnemyCount(0))
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
-        .add_system_to_stage(CoreStage::PostUpdate, despawner)
+        .add_system_to_stage(CoreStage::PostUpdate, despawner::<MarkDespawn>)
         .add_state(GameState::Initial)
         .add_system_set(SystemSet::on_update(GameState::Initial).with_system(bootstrap))
         .run();
