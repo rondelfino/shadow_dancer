@@ -22,10 +22,10 @@ impl Plugin for GameAudioPlugin {
             .add_event::<SFXEvents>()
             .add_startup_system_to_stage(StartupStage::PreStartup, set_audio_channel_volume)
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(play_bgm))
+            .add_system_set(SystemSet::on_enter(GameState::EndStage).with_system(end_stage_bgm))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
-                    .with_system(play_sfx.after(collision_system))
-                    ,
+                    .with_system(play_sfx.after(collision_system)),
             );
     }
 }
@@ -66,8 +66,15 @@ pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, game_assets: Res<GameAsset
     audio
         .play(game_assets.bgm_01.clone())
         .fade_in(AudioTween::new(
-            Duration::from_secs(2),
+            Duration::from_secs(1),
             AudioEasing::OutPowi(2),
         ))
         .looped();
+}
+
+pub fn end_stage_bgm(audio: Res<AudioChannel<BGMChannel>>) {
+    audio.pause().fade_out(AudioTween::new(
+        Duration::from_secs(5),
+        AudioEasing::OutPowi(2),
+    ));
 }
