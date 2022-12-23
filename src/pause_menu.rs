@@ -4,6 +4,9 @@ pub struct PauseMenuPlugin;
 impl Plugin for PauseMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::Paused).with_system(pause_setup))
+            .add_system_set(
+                SystemSet::on_exit(GameState::Paused).with_system(despawner::<OnPauseScreen>),
+            )
             .add_system(pause_game);
     }
 }
@@ -11,14 +14,14 @@ impl Plugin for PauseMenuPlugin {
 #[derive(Component)]
 struct OnPauseScreen;
 
-#[derive(Clone, Eq, PartialEq, Debug, Hash)]
-enum MenuState {
-    Main,
-    Settings,
-    SettingsDisplay,
-    SettingsSound,
-    Disabled,
-}
+// #[derive(Clone, Eq, PartialEq, Debug, Hash)]
+// enum MenuState {
+//     Main,
+//     Settings,
+//     SettingsDisplay,
+//     SettingsSound,
+//     Disabled,
+// }
 
 fn pause_setup(mut commands: Commands, game_assets: Res<GameAssets>) {
     commands
@@ -56,14 +59,10 @@ fn pause_game(
             game_state.push(GameState::Paused).unwrap();
             keyboard_input.reset(KeyCode::Escape);
             *pause_event = PauseEvent::Paused;
-
-            println!("{:?}", game_state);
         } else {
             game_state.pop().unwrap();
             keyboard_input.reset(KeyCode::Escape);
             *pause_event = PauseEvent::Unpaused;
-
-            println!("{:?}", game_state);
         }
     }
 }
