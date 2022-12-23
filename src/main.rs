@@ -22,6 +22,7 @@ mod prelude {
     pub use bevy::{
         math::Vec3Swizzles, prelude::*, render::camera::ScalingMode, sprite::collide_aabb::collide,
     };
+    pub use bevy_easings::*;
     pub use bevy_kira_audio::prelude::{
         AudioApp, AudioChannel, AudioControl, AudioEasing, AudioPlugin as KiraAudioPlugin,
         AudioSource as KiraAudioSource, AudioTween,
@@ -57,7 +58,7 @@ pub fn pause_game(event: Res<PauseEvent>, query: Query<&Player>) -> ShouldRun {
     let player = query.get_single();
     match player {
         Ok(p) => {
-            if *event == PauseEvent::Unpaused && p.1 == PlayerState::Main {
+            if *event == PauseEvent::Unpaused && p.1 == LevelState::Start {
                 ShouldRun::Yes
             } else {
                 ShouldRun::No
@@ -100,6 +101,7 @@ fn main() {
         .add_plugin(WallPlugin)
         .add_plugin(ShurikenPlugin)
         .add_plugin(PauseMenuPlugin)
+        .add_plugin(EasingsPlugin)
         .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .insert_resource(EnemyCount(0))
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
@@ -114,8 +116,4 @@ fn bootstrap(
     mut game_assets: ResMut<assets::GameAssets>,
 ) {
     assets_handler.load(GameState::LoadWorld, &mut game_assets);
-}
-
-fn test(game_state: Res<State<GameState>>) {
-    println!("{:?}", game_state);
 }

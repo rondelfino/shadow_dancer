@@ -14,21 +14,25 @@ pub enum PlayerAction {
     WalkingRight,
     Flipping,
     Falling,
+    Landing,
+    Landed,
     Attacking,
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub enum PlayerState {
+pub enum LevelState {
     Intro,
-    Main
+    Start,
 }
 
+#[derive(Component)]
+pub struct AttackCooldown(pub Timer);
 
 #[derive(Component)]
 pub struct MarkDespawn;
 
 #[derive(Component)]
-pub struct Player(pub PlayerAction, pub PlayerState);
+pub struct Player(pub PlayerAction, pub LevelState);
 
 #[derive(Component)]
 pub struct Enemy(pub EnemyState);
@@ -77,3 +81,5 @@ pub struct FlippingAnimationTimer(pub Timer);
 
 #[derive(Component)]
 pub struct Effect;
+
+
