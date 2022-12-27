@@ -1,0 +1,25 @@
+{
+    Easy: [
+        WaveData (
+            enemy_type: Pawn,
+            enemy_count: 5,
+            enemy_interval_sec: 0.05,
+            enemy_spawn_timer_sec: 1.0,
+            starting_wall: Left,
+        ),
+        WaveData (
+            enemy_type: Pawn,
+            enemy_count: 5,
+            enemy_interval_sec: 0.05,
+            enemy_spawn_timer_sec: 5.0,
+            starting_wall: Right,
+        ),
+        WaveData (
+            enemy_type: Pawn,
+            enemy_count: 10,
+            enemy_interval_sec: 0.05,
+            enemy_spawn_timer_sec: 5.0,
+            starting_wall: Right,
+        )
+    ]
+}

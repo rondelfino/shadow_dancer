@@ -1,10 +1,7 @@
 use crate::prelude::*;
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 pub struct EnemyCount(pub u32);
-
-#[derive(Resource)]
-pub struct SpawnTimer(pub Timer);
 
 #[derive(Default, Resource, PartialEq, Eq, Debug)]
 pub enum PauseEvent {

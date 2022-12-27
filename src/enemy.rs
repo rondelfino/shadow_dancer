@@ -1,4 +1,4 @@
-use crate::{assets::GameAssets, prelude::*, pause_game};
+use crate::{assets::GameAssets, pause_game, prelude::*, waves::EnemyType};
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
@@ -22,18 +22,20 @@ impl EnemyBundle {
     /// * `trajectory` - Starting trajectory of the enemy used to calculate launch angle of the enemy; x and y values normalized between 0 and 1
     ///
     pub fn new(
-        gravity: f32,
-        enemy_speed: f32,
-        trajectory: Vec2,
+        enemy_type: EnemyType,
         game_assets: Res<GameAssets>,
+        starting_wall: StartingWall,
     ) -> Result<Self, String> {
+        let trajectory = enemy_type.get_trajectory();
+        let enemy_speed = enemy_type.get_speed();
+
         if (trajectory.x, trajectory.y) < (0.0, 0.0) || (trajectory.x, trajectory.y) > (1.0, 1.0) {
             return Err("The trajectory must be between 0 and 1".to_string());
         }
 
-        let direction = match random::<bool>() {
-            true => -1.0,
-            false => 1.0,
+        let direction = match starting_wall {
+            StartingWall::Left => 1.0,
+            StartingWall::Right => -1.0,
         };
 
         let mut starting_x = RIGHT_WALL;
@@ -48,10 +50,10 @@ impl EnemyBundle {
                 trajectory.x * enemy_speed * direction,
                 trajectory.y * enemy_speed,
             )),
-            gravity: Gravity(gravity),
+            gravity: Gravity(enemy_type.get_gravity()),
             initial_enemy_speed: InitialEnemySpeed(enemy_speed * trajectory.y),
             sprite_bundle: SpriteSheetBundle {
-                texture_atlas: game_assets.red_ninja.clone(),
+                texture_atlas: enemy_type.get_texture(game_assets),
                 transform: Transform {
                     translation: Vec3::new(starting_x, -275.0, 1.0),
                     ..default()
@@ -62,19 +64,14 @@ impl EnemyBundle {
             hitbox: HitBox(Vec2::new(35.0, 60.0)),
         })
     }
-
-    pub fn pawn(game_assets: Res<GameAssets>) -> Self {
-        Self::new(1.75, 300.0, Vec2::new(1.0, 1.0), game_assets).unwrap()
-    }
 }
 
 pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_update(GameState::InGame)      
+            SystemSet::on_update(GameState::InGame)
                 .with_run_criteria(pause_game)
-                .with_system(enemy_spawner)
                 .with_system(enemy_movement)
                 .with_system(enemy_animator)
                 .with_system(gravity_system),
@@ -84,17 +81,14 @@ impl Plugin for EnemyPlugin {
 
 pub fn enemy_movement(
     time: Res<Time>,
-    mut query: Query<
-        (
-            Entity,
-            &mut Transform,
-            &mut Velocity,
-            &InitialEnemySpeed,
-            &mut WallHangingTimer,
-            &mut Enemy,
-        ),
-        With<Enemy>,
-    >,
+    mut query: Query<(
+        Entity,
+        &mut Transform,
+        &mut Velocity,
+        &InitialEnemySpeed,
+        &mut WallHangingTimer,
+        &mut Enemy,
+    )>,
     mut commands: Commands,
 ) {
     for (
@@ -147,23 +141,6 @@ pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSpri
                 sprite.index = 0;
             }
         }
-    }
-}
-
-pub fn spawn_enemy(commands: &mut Commands, game_assets: Res<GameAssets>) {
-    commands.spawn(EnemyBundle::pawn(game_assets));
-}
-
-pub fn enemy_spawner(
-    time: Res<Time>,
-    mut timer: ResMut<SpawnTimer>,
-    mut commands: Commands,
-    mut count: ResMut<EnemyCount>,
-    game_assets: Res<GameAssets>,
-) {
-    if timer.0.tick(time.delta()).just_finished() {
-        spawn_enemy(&mut commands, game_assets);
-        count.0 += 1;
     }
 }
 

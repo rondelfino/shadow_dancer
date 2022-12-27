@@ -18,6 +18,7 @@ mod prelude {
     pub use crate::shuriken::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
+    pub use crate::waves::*;
 
     pub use bevy::{
         math::Vec3Swizzles, prelude::*, render::camera::ScalingMode, sprite::collide_aabb::collide,
@@ -53,6 +54,7 @@ mod roof;
 mod shuriken;
 mod utils;
 mod walls;
+mod waves;
 
 pub fn pause_game(event: Res<PauseEvent>, query: Query<&Player>) -> ShouldRun {
     let player = query.get_single();
@@ -102,7 +104,7 @@ fn main() {
         .add_plugin(ShurikenPlugin)
         .add_plugin(PauseMenuPlugin)
         .add_plugin(EasingsPlugin)
-        .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
+        .add_plugin(WavePlugin)
         .insert_resource(EnemyCount(0))
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
         .add_system_to_stage(CoreStage::PostUpdate, despawner::<MarkDespawn>)

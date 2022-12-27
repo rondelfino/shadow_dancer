@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use crate::prelude::*;
 
 #[derive(PartialEq, Eq, Debug)]
@@ -23,6 +25,12 @@ pub enum PlayerAction {
 pub enum LevelState {
     Intro,
     Start,
+}
+
+#[derive(Deserialize, Clone, Debug, Copy)]
+pub enum StartingWall {
+    Left,
+    Right,
 }
 
 #[derive(Component)]
@@ -58,10 +66,10 @@ pub struct AttackingTimer(pub Timer);
 #[derive(Component)]
 pub struct Dimensions(pub Vec2);
 
-#[derive(Component)]
+#[derive(Component, Deserialize)]
 pub struct HitBox(pub Vec2);
 
-#[derive(Component)]
+#[derive(Component, Deserialize)]
 pub struct Gravity(pub f32);
 
 #[derive(Component)]
