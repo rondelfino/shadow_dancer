@@ -24,7 +24,7 @@ impl PlayerBundle {
     pub fn new(game_assets: Res<GameAssets>) -> Self {
         PlayerBundle {
             player: Player(PlayerAction::Idle, LevelState::Intro),
-            attacking_timer: AttackingTimer(Timer::from_seconds(0.035, TimerMode::Repeating)),
+            attacking_timer: AttackingTimer(Timer::from_seconds(0.025, TimerMode::Repeating)),
             walking_animation_timer: WalkingAnimationTimer(Timer::from_seconds(
                 0.2,
                 TimerMode::Repeating,
@@ -90,24 +90,26 @@ pub fn player_controls(
 
     if player.0 == PlayerAction::Falling || player.0 == PlayerAction::Attacking {
         if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) && left > LEFT_WALL {
-            player_transform.translation.x -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+            player_transform.translation.x -= PLAYER_AIR_SPEED * time.delta_seconds();
         }
 
         if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) && right < RIGHT_WALL {
-            player_transform.translation.x += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+            player_transform.translation.x += PLAYER_AIR_SPEED * time.delta_seconds();
         }
 
         if keyboard_input.pressed(KeyCode::W) && top < UPPER_BOUND {
-            player_transform.translation.y += PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+            player_transform.translation.y += PLAYER_AIR_SPEED * time.delta_seconds();
         }
 
         if keyboard_input.pressed(KeyCode::S) && bottom > LOWER_BOUND {
-            player_transform.translation.y -= PLAYER_AIR_SPEED * time.delta().as_secs_f32();
+            player_transform.translation.y -= PLAYER_AIR_SPEED * time.delta_seconds();
         }
+    }
 
-        if keyboard_input.any_just_pressed(vec![KeyCode::Down, KeyCode::X]) {
-            player.0 = PlayerAction::Attacking;
-        }
+    if keyboard_input.any_pressed(vec![KeyCode::Down, KeyCode::X])
+        && player.0 == PlayerAction::Falling
+    {
+        player.0 = PlayerAction::Attacking;
     }
 
     if player.1 == LevelState::Intro {
@@ -119,15 +121,13 @@ pub fn player_controls(
             if keyboard_input.any_pressed(vec![KeyCode::Left, KeyCode::A]) {
                 player.0 = PlayerAction::WalkingLeft;
                 if left > LEFT_WALL {
-                    player_transform.translation.x -=
-                        PLAYER_WALKING_SPEED * time.delta().as_secs_f32();
+                    player_transform.translation.x -= PLAYER_WALKING_SPEED * time.delta_seconds();
                 }
             }
             if keyboard_input.any_pressed(vec![KeyCode::Right, KeyCode::D]) {
                 player.0 = PlayerAction::WalkingRight;
                 if right < BONUS_STAGE_INTRO_RIGHT_BOUNDARY {
-                    player_transform.translation.x +=
-                        PLAYER_WALKING_SPEED * time.delta().as_secs_f32();
+                    player_transform.translation.x += PLAYER_WALKING_SPEED * time.delta_seconds();
                 }
             } else if keyboard_input.any_just_released(vec![
                 KeyCode::Right,
@@ -155,6 +155,7 @@ pub fn player_attacking_system(
         With<Player>,
     >,
     mut sfx_events: EventWriter<SFXEvents>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
     let (mut player, mut attacking_timer, transform, mut sprite) = query.single_mut();
 
@@ -168,13 +169,10 @@ pub fn player_attacking_system(
     }
 
     sprite.flip_x = false;
-    if sprite.index == 4 {
-        player.0 = PlayerAction::Falling;
-    }
 
     attacking_timer.0.tick(time.delta());
-    if attacking_timer.0.just_finished() {
-        sprite.index = (sprite.index + 1) % 6;
+    if attacking_timer.0.just_finished() && sprite.index < 4 {
+        sprite.index = (sprite.index + 1) % 5;
         println!("{:?}", sprite.index);
 
         if sprite.index == 4 {
@@ -188,6 +186,10 @@ pub fn player_attacking_system(
             ));
             sfx_events.send(SFXEvents::ShurikenSound);
         }
+    }
+
+    if !keyboard_input.any_pressed(vec![KeyCode::Down, KeyCode::X]) && sprite.index >= 4 {
+        player.0 = PlayerAction::Falling;
     }
 }
 
