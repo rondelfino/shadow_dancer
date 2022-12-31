@@ -1,4 +1,17 @@
-use crate::{assets::GameAssets, pause_game, prelude::*, waves::EnemyType};
+use crate::{assets::GameAssets, pause_game, prelude::*};
+use rand::Rng;
+use serde::Deserialize;
+
+#[derive(Clone, Debug)]
+pub struct EnemySpawnTimer(pub Timer);
+
+#[derive(Clone, Debug)]
+pub struct SpawnInterval(pub Timer);
+
+#[derive(Component, Debug)]
+pub struct ReflectChance(pub f32);
+
+pub struct ReflectionEvent(pub Entity);
 
 #[derive(Bundle)]
 pub struct EnemyBundle {
@@ -9,6 +22,7 @@ pub struct EnemyBundle {
     wall_hanging_timer: WallHangingTimer,
     hitbox: HitBox,
     sprite_bundle: SpriteSheetBundle,
+    reflect_chance: ReflectChance,
 }
 
 impl EnemyBundle {
@@ -28,6 +42,7 @@ impl EnemyBundle {
     ) -> Result<Self, String> {
         let trajectory = enemy_type.get_trajectory();
         let enemy_speed = enemy_type.get_speed();
+        let reflect_chance = enemy_type.get_reflect_chance();
 
         if (trajectory.x, trajectory.y) < (0.0, 0.0) || (trajectory.x, trajectory.y) > (1.0, 1.0) {
             return Err("The trajectory must be between 0 and 1".to_string());
@@ -62,20 +77,45 @@ impl EnemyBundle {
             },
             wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             hitbox: HitBox(Vec2::new(35.0, 60.0)),
+            reflect_chance: ReflectChance(reflect_chance),
         })
     }
 }
 
-pub struct EnemyPlugin;
-impl Plugin for EnemyPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_run_criteria(pause_game)
-                .with_system(enemy_movement)
-                .with_system(enemy_animator)
-                .with_system(gravity_system),
-        );
+#[derive(Deserialize, Debug, Hash, PartialEq, Eq, Clone, Copy)]
+pub enum EnemyType {
+    Pawn,
+}
+
+impl EnemyType {
+    pub fn get_texture(&self, game_assets: Res<GameAssets>) -> Handle<TextureAtlas> {
+        match self {
+            EnemyType::Pawn => game_assets.red_ninja.clone(),
+        }
+    }
+
+    pub fn get_gravity(&self) -> f32 {
+        match self {
+            EnemyType::Pawn => 0.7,
+        }
+    }
+
+    pub fn get_speed(&self) -> f32 {
+        match self {
+            EnemyType::Pawn => 200.0,
+        }
+    }
+
+    pub fn get_trajectory(&self) -> Vec2 {
+        match self {
+            EnemyType::Pawn => Vec2::new(1.0, 1.0),
+        }
+    }
+
+    pub fn get_reflect_chance(&self) -> f32 {
+        match self {
+            EnemyType::Pawn => 0.50,
+        }
     }
 }
 
@@ -147,5 +187,25 @@ pub fn enemy_animator(mut query: Query<(&Enemy, &Velocity, &mut TextureAtlasSpri
 pub fn gravity_system(mut query: Query<(&mut Velocity, &mut Gravity), With<Enemy>>) {
     for (mut velocity, gravity) in query.iter_mut() {
         velocity.y -= gravity.0;
+    }
+}
+
+fn debug_reflection(mut events: EventReader<ReflectionEvent>) {
+    for event in events.iter() {
+        eprintln!("Entity {:?} reflected!", event.0);
+    }
+}
+
+pub struct EnemyPlugin;
+impl Plugin for EnemyPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<ReflectionEvent>().add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_run_criteria(pause_game)
+                .with_system(enemy_movement)
+                .with_system(enemy_animator)
+                .with_system(gravity_system)
+                .with_system(debug_reflection),
+        );
     }
 }
