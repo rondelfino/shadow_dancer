@@ -39,78 +39,6 @@ pub struct Wave {
 #[derive(Resource, Deserialize, Clone, Debug)]
 pub struct WaveCount(pub u32);
 
-#[derive(Deserialize, Debug, Hash, PartialEq, Eq, Clone, Copy)]
-pub enum EnemyType {
-    Pawn,
-}
-
-#[derive(Clone, Debug)]
-pub struct EnemySpawnTimer(pub Timer);
-
-#[derive(Clone, Debug)]
-pub struct SpawnInterval(pub Timer);
-
-impl EnemyType {
-    pub fn get_texture(&self, game_assets: Res<GameAssets>) -> Handle<TextureAtlas> {
-        match self {
-            EnemyType::Pawn => game_assets.red_ninja.clone(),
-        }
-    }
-
-    pub fn get_gravity(&self) -> f32 {
-        match self {
-            EnemyType::Pawn => 7.0,
-        }
-    }
-
-    pub fn get_speed(&self) -> f32 {
-        match self {
-            EnemyType::Pawn => 600.0,
-        }
-    }
-
-    pub fn get_trajectory(&self) -> Vec2 {
-        match self {
-            EnemyType::Pawn => Vec2::new(1.0, 1.0),
-        }
-    }
-}
-
-pub struct WavePlugin;
-impl Plugin for WavePlugin {
-    fn build(&self, app: &mut App) {
-        let level_difficulty_map = LevelDifficultyMap {
-            waves: from_bytes(include_bytes!("../data/waves.ron")).unwrap(),
-        };
-
-        let easy_wave_data = &level_difficulty_map.waves[&WaveDifficulty::Easy];
-        let waves = easy_wave_data
-            .iter()
-            .map(|wave| {
-                return Wave {
-                    enemy_type: wave.enemy_type.clone(),
-                    enemy_count: WaveCount(wave.enemy_count),
-                    enemy_interval: SpawnInterval(Timer::from_seconds(
-                        wave.enemy_interval_sec,
-                        TimerMode::Repeating,
-                    )),
-                    enemy_spawn_timer_sec: EnemySpawnTimer(Timer::from_seconds(
-                        wave.enemy_spawn_timer_sec,
-                        TimerMode::Once,
-                    )),
-                    starting_wall: wave.starting_wall.clone(),
-                };
-            })
-            .collect::<Vec<Wave>>();
-
-        app.insert_resource(Level(waves, 0)).add_system_set(
-            SystemSet::on_update(GameState::InGame)
-                .with_run_criteria(pause_game)
-                .with_system(wave_spawner),
-        );
-    }
-}
-
 pub fn wave_spawner(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
@@ -148,5 +76,40 @@ pub fn wave_spawner(
                 level_resource.1 = level_resource.1 + 1;
             }
         }
+    }
+}
+
+pub struct WavePlugin;
+impl Plugin for WavePlugin {
+    fn build(&self, app: &mut App) {
+        let level_difficulty_map = LevelDifficultyMap {
+            waves: from_bytes(include_bytes!("../data/waves.ron")).unwrap(),
+        };
+
+        let easy_wave_data = &level_difficulty_map.waves[&WaveDifficulty::Easy];
+        let waves = easy_wave_data
+            .iter()
+            .map(|wave| {
+                return Wave {
+                    enemy_type: wave.enemy_type.clone(),
+                    enemy_count: WaveCount(wave.enemy_count),
+                    enemy_interval: SpawnInterval(Timer::from_seconds(
+                        wave.enemy_interval_sec,
+                        TimerMode::Repeating,
+                    )),
+                    enemy_spawn_timer_sec: EnemySpawnTimer(Timer::from_seconds(
+                        wave.enemy_spawn_timer_sec,
+                        TimerMode::Once,
+                    )),
+                    starting_wall: wave.starting_wall.clone(),
+                };
+            })
+            .collect::<Vec<Wave>>();
+
+        app.insert_resource(Level(waves, 0)).add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_run_criteria(pause_game)
+                .with_system(wave_spawner),
+        );
     }
 }
