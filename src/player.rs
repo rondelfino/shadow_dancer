@@ -173,7 +173,7 @@ pub fn player_attacking_system(
     attacking_timer.0.tick(time.delta());
     if attacking_timer.0.just_finished() && sprite.index < 4 {
         sprite.index = (sprite.index + 1) % 5;
-        println!("{:?}", sprite.index);
+        // println!("{:?}", sprite.index);
 
         if sprite.index == 4 {
             commands.spawn_empty().insert(ShurikenBundle::new(
@@ -183,6 +183,7 @@ pub fn player_attacking_system(
                     transform.translation.y - 20.0,
                     transform.translation.z,
                 ),
+                400.0,
             ));
             sfx_events.send(SFXEvents::ShurikenSound);
         }
@@ -332,7 +333,7 @@ pub fn player_scoreboard_animation(
 
         if sprite.index == 15 {
             if transform.translation.y.round() >= FINAL_PLAYER_POS_Y {
-                println!("{:?}", transform.translation.y.round());
+                // println!("{:?}", transform.translation.y.round());
                 transform.translation.y -=
                     time.delta_seconds() * (velocity.y + time.delta_seconds() * gravity.0 / 2.0);
                 velocity.y -= gravity.0 * time.delta_seconds();

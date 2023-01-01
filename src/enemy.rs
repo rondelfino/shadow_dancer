@@ -1,5 +1,5 @@
 use crate::{assets::GameAssets, pause_game, prelude::*};
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use serde::Deserialize;
 
 #[derive(Clone, Debug)]
@@ -11,8 +11,6 @@ pub struct SpawnInterval(pub Timer);
 #[derive(Component, Debug)]
 pub struct ReflectChance(pub f32);
 
-pub struct ReflectionEvent(pub Entity);
-
 #[derive(Bundle)]
 pub struct EnemyBundle {
     enemy: Enemy,
@@ -23,6 +21,7 @@ pub struct EnemyBundle {
     hitbox: HitBox,
     sprite_bundle: SpriteSheetBundle,
     reflect_chance: ReflectChance,
+    dimensions: Dimensions,
 }
 
 impl EnemyBundle {
@@ -59,6 +58,8 @@ impl EnemyBundle {
             starting_x = LEFT_WALL;
         }
 
+        let mut rng = thread_rng();
+
         Ok(EnemyBundle {
             enemy: Enemy(EnemyState::Airborne),
             velocity: Velocity(Vec2::new(
@@ -75,9 +76,13 @@ impl EnemyBundle {
                 },
                 ..default()
             },
-            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            wall_hanging_timer: WallHangingTimer(Timer::from_seconds(
+                rng.gen_range(0.1..0.4),
+                TimerMode::Repeating,
+            )),
             hitbox: HitBox(Vec2::new(35.0, 60.0)),
             reflect_chance: ReflectChance(reflect_chance),
+            dimensions: Dimensions(Vec2::new(30.0, 30.0)),
         })
     }
 }
@@ -96,13 +101,13 @@ impl EnemyType {
 
     pub fn get_gravity(&self) -> f32 {
         match self {
-            EnemyType::Pawn => 0.7,
+            EnemyType::Pawn => 7.0,
         }
     }
 
     pub fn get_speed(&self) -> f32 {
         match self {
-            EnemyType::Pawn => 200.0,
+            EnemyType::Pawn => 600.0,
         }
     }
 
@@ -114,7 +119,7 @@ impl EnemyType {
 
     pub fn get_reflect_chance(&self) -> f32 {
         match self {
-            EnemyType::Pawn => 0.50,
+            EnemyType::Pawn => 0.20,
         }
     }
 }
@@ -128,6 +133,7 @@ pub fn enemy_movement(
         &InitialEnemySpeed,
         &mut WallHangingTimer,
         &mut Enemy,
+        &Dimensions,
     )>,
     mut commands: Commands,
 ) {
@@ -138,9 +144,10 @@ pub fn enemy_movement(
         initial_enemy_speed,
         mut wall_hanging_timer,
         mut enemy,
+        dimensions,
     ) in query.iter_mut()
     {
-        let Bounds { right, left, .. } = calculate_bounds(&transform, None);
+        let Bounds { right, left, .. } = calculate_bounds(&transform, Some(dimensions.0));
 
         let is_touching_left_bound = left < LEFT_WALL;
         let is_touching_right_bound = right > RIGHT_WALL;
@@ -190,22 +197,15 @@ pub fn gravity_system(mut query: Query<(&mut Velocity, &mut Gravity), With<Enemy
     }
 }
 
-fn debug_reflection(mut events: EventReader<ReflectionEvent>) {
-    for event in events.iter() {
-        eprintln!("Entity {:?} reflected!", event.0);
-    }
-}
-
 pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ReflectionEvent>().add_system_set(
+        app.add_system_set(
             SystemSet::on_update(GameState::InGame)
                 .with_run_criteria(pause_game)
                 .with_system(enemy_movement)
                 .with_system(enemy_animator)
-                .with_system(gravity_system)
-                .with_system(debug_reflection),
+                .with_system(gravity_system),
         );
     }
 }
