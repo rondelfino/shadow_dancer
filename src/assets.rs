@@ -17,10 +17,13 @@ pub struct GameAssets {
     pub collision_sound: Handle<KiraAudioSource>,
     pub death_sound: Handle<KiraAudioSource>,
     pub shuriken_sound: Handle<KiraAudioSource>,
+    pub reflection_sound: Handle<KiraAudioSource>,
 
     pub bgm_01: Handle<KiraAudioSource>,
 
     pub menu_font: Handle<Font>,
+
+    pub splash_screen: Handle<Image>,
 }
 
 pub struct AssetsPlugin;
@@ -66,15 +69,16 @@ impl AssetsPlugin {
         asset_handler.add_audio(&mut game_assets.collision_sound, "sfx/impact.ogg");
         asset_handler.add_audio(&mut game_assets.death_sound, "sfx/disintegrate.ogg");
         asset_handler.add_audio(&mut game_assets.shuriken_sound, "sfx/shuriken.ogg");
+        asset_handler.add_audio(&mut game_assets.reflection_sound, "sfx/parry.ogg");
 
         asset_handler.add_audio(
             &mut game_assets.bgm_01,
-            "music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg",
+            "music/08 - Bonus Stage - Keisuke Tsukahara.ogg",
         );
 
         asset_handler.add_font(
             &mut game_assets.menu_font,
             "ui/shadow-dancer-the-secret-of-shinobi-smd.ttf",
-        )
+        );
     }
 }

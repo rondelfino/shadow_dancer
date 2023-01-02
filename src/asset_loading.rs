@@ -2,7 +2,7 @@ use bevy::{asset::Asset, ecs::system::SystemParam};
 
 use crate::{
     assets::{self, GameAssets},
-    prelude::*,
+    prelude::*, splash,
 };
 use std::{marker::PhantomData, vec};
 
@@ -100,7 +100,7 @@ impl<'w, 's> AssetHandler<'w, 's> {
     ) {
         match game_state {
             // AppState::TitleScreen => title_screen::load(self, game_assets),
-            // AppState::Splash => splash::load(self, game_assets),
+            GameState::Splash => splash::load(self, game_assets),
             GameState::LoadWorld => assets::AssetsPlugin::load(self, game_assets),
             _ => (),
         }

@@ -16,6 +16,7 @@ mod prelude {
     pub use crate::resources::*;
     pub use crate::roof::*;
     pub use crate::shuriken::*;
+    pub use crate::splash::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
     pub use crate::waves::*;
@@ -52,6 +53,7 @@ mod player;
 mod resources;
 mod roof;
 mod shuriken;
+mod splash;
 mod utils;
 mod walls;
 mod waves;
@@ -105,6 +107,7 @@ fn main() {
         .add_plugin(PauseMenuPlugin)
         .add_plugin(EasingsPlugin)
         .add_plugin(WavePlugin)
+        .add_plugin(SplashPlugin)
         .insert_resource(EnemyCount(0))
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
         .add_system_to_stage(CoreStage::PostUpdate, despawner::<MarkDespawn>)
@@ -117,5 +120,5 @@ fn bootstrap(
     mut assets_handler: asset_loading::AssetHandler,
     mut game_assets: ResMut<assets::GameAssets>,
 ) {
-    assets_handler.load(GameState::LoadWorld, &mut game_assets);
+    assets_handler.load(GameState::Splash, &mut game_assets);
 }
