@@ -18,6 +18,7 @@ pub struct PlayerBundle {
     dimensions: Dimensions,
     gravity: Gravity,
     velocity: Velocity,
+    hitbox: HitBox,
 }
 
 impl PlayerBundle {
@@ -44,6 +45,7 @@ impl PlayerBundle {
             dimensions: Dimensions(Vec2::new(42.0, 42.0)),
             gravity: Gravity(1.75),
             velocity: Velocity(Vec2::new(0.0, PLAYER_FLIPPING_SPEED)),
+            hitbox: HitBox(Vec2::new(20.0, 20.0)),
         }
     }
 }
@@ -108,6 +110,9 @@ pub fn player_controls(
 
     if keyboard_input.any_pressed(vec![KeyCode::Down, KeyCode::X])
         && player.0 == PlayerAction::Falling
+        && player.0 != PlayerAction::Flipping
+        && player.0 != PlayerAction::WalkingLeft
+        && player.0 != PlayerAction::WalkingRight
     {
         player.0 = PlayerAction::Attacking;
     }

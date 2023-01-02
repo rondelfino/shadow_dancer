@@ -5,7 +5,11 @@ use crate::{assets::GameAssets, prelude::*};
 pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::InGame).with_system(collision_system));
+        app.add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_system(collision_system)
+                .with_system(player_collision),
+        );
     }
 }
 
@@ -51,9 +55,11 @@ pub fn collision_system(
 
                 if random_number < reflect_chance.0 && enemy.0 == EnemyState::Airborne {
                     commands.entity(shuriken_entity).insert(Reflected(angle));
+                    sfx_events.send(SFXEvents::ReflectionSound);
                 } else if enemy.0 == EnemyState::WallHanging {
                     commands.entity(shuriken_entity).insert(Reflected(angle));
-                } else if enemy.0 == EnemyState::Airborne && random_number > reflect_chance.0 {
+                    sfx_events.send(SFXEvents::ReflectionSound);
+                } else {
                     sfx_events.send(SFXEvents::CollisionSound);
 
                     commands.entity(enemy_entity).insert(MarkDespawn);
@@ -69,6 +75,34 @@ pub fn collision_system(
 
                     enemy.0 = EnemyState::Dead;
                 }
+            }
+        }
+    }
+}
+
+pub fn player_collision(
+    mut commands: Commands,
+    player_query: Query<(&Transform, &HitBox), With<Player>>,
+    shuriken_query: Query<
+        (Entity, &Transform, &HitBox),
+        (With<Shuriken>, Without<MarkDespawn>, With<Reflected>),
+    >,
+) {
+    for (shuriken_entity, shuriken_transform, shuriken_hitbox) in shuriken_query.iter() {
+        let shurkien_scale = shuriken_transform.scale.xy();
+
+        for (player_transform, player_hitbox) in player_query.iter() {
+            let player_scale = player_transform.scale.xy();
+
+            let player_collision = collide(
+                shuriken_transform.translation,
+                shuriken_hitbox.0 * shurkien_scale,
+                player_transform.translation,
+                player_hitbox.0 * player_scale,
+            );
+
+            if player_collision.is_some() {
+                commands.entity(shuriken_entity).insert(MarkDespawn);
             }
         }
     }
