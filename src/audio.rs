@@ -12,6 +12,7 @@ pub enum SFXEvents {
     CollisionSound,
     DeathSound,
     ShurikenSound,
+    ReflectionSound,
 }
 
 impl Plugin for GameAudioPlugin {
@@ -34,8 +35,8 @@ pub fn set_audio_channel_volume(
     music_channel: Res<AudioChannel<BGMChannel>>,
     effects_channel: Res<AudioChannel<SFXChannel>>,
 ) {
-    music_channel.set_volume(0.025);
-    effects_channel.set_volume(0.075);
+    music_channel.set_volume(0.010);
+    effects_channel.set_volume(0.1);
 }
 
 fn play_sfx(
@@ -54,6 +55,9 @@ fn play_sfx(
             SFXEvents::ShurikenSound => {
                 audio.play(game_assets.shuriken_sound.clone());
             }
+            SFXEvents::ReflectionSound => {
+                audio.play(game_assets.reflection_sound.clone());
+            }
         }
     }
 
@@ -63,13 +67,7 @@ fn play_sfx(
 }
 
 pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, game_assets: Res<GameAssets>) {
-    audio
-        .play(game_assets.bgm_01.clone())
-        .fade_in(AudioTween::new(
-            Duration::from_secs(1),
-            AudioEasing::OutPowi(2),
-        ))
-        .looped();
+    audio.play(game_assets.bgm_01.clone()).looped();
 }
 
 pub fn end_stage_bgm(audio: Res<AudioChannel<BGMChannel>>) {
