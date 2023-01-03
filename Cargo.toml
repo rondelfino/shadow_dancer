@@ -13,6 +13,7 @@ iyes_loopless = "0.9.1"
 bevy_easings = "0.9.0"
 ron = "0.8.0"
 serde = "1.0.151"
+leafwing-input-manager = "0.7.1"
 
 
 [profile.dev]
