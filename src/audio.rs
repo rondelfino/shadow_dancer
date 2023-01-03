@@ -13,6 +13,13 @@ pub enum SFXEvents {
     DeathSound,
     ShurikenSound,
     ReflectionSound,
+    MeleeAttackSound,
+}
+
+pub enum BGMEvents {
+    TitleScreenMusic,
+    InGameMusic,
+    // EndStageMusic,
 }
 
 impl Plugin for GameAudioPlugin {
@@ -21,13 +28,11 @@ impl Plugin for GameAudioPlugin {
             .add_audio_channel::<BGMChannel>()
             .add_audio_channel::<SFXChannel>()
             .add_event::<SFXEvents>()
+            .add_event::<BGMEvents>()
             .add_startup_system_to_stage(StartupStage::PreStartup, set_audio_channel_volume)
-            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(play_bgm))
-            .add_system_set(SystemSet::on_enter(GameState::EndStage).with_system(end_stage_bgm))
-            .add_system_set(
-                SystemSet::on_update(GameState::InGame)
-                    .with_system(play_sfx.after(collision_system)),
-            );
+            .add_system_set(SystemSet::on_enter(GameState::EndStage).with_system(fade_out_bgm))
+            .add_system(play_sfx)
+            .add_system(play_bgm);
     }
 }
 
@@ -58,6 +63,9 @@ fn play_sfx(
             SFXEvents::ReflectionSound => {
                 audio.play(game_assets.reflection_sound.clone());
             }
+            SFXEvents::MeleeAttackSound => {
+                audio.play(game_assets.melee_attack_sound.clone());
+            }
         }
     }
 
@@ -66,11 +74,28 @@ fn play_sfx(
     }
 }
 
-pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, game_assets: Res<GameAssets>) {
-    audio.play(game_assets.bgm_01.clone()).looped();
+fn play_bgm(
+    audio: Res<AudioChannel<BGMChannel>>,
+    game_assets: Res<GameAssets>,
+    mut bgm_events: EventReader<BGMEvents>,
+) {
+    for event in bgm_events.iter() {
+        match event {
+            BGMEvents::TitleScreenMusic => {
+                audio.play(game_assets.title_screen_bgm.clone());
+            }
+            BGMEvents::InGameMusic => {
+                audio.play(game_assets.ingame_bgm.clone());
+            }
+        }
+    }
+
+    if !bgm_events.is_empty() {
+        bgm_events.clear();
+    }
 }
 
-pub fn end_stage_bgm(audio: Res<AudioChannel<BGMChannel>>) {
+pub fn fade_out_bgm(audio: Res<AudioChannel<BGMChannel>>) {
     audio.pause().fade_out(AudioTween::new(
         Duration::from_secs(5),
         AudioEasing::OutPowi(2),
