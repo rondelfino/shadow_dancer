@@ -17,6 +17,8 @@ mod prelude {
     pub use crate::roof::*;
     pub use crate::shuriken::*;
     pub use crate::splash::*;
+    pub use crate::title_screen::*;
+    pub use crate::transition::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
     pub use crate::waves::*;
@@ -34,6 +36,8 @@ mod prelude {
     pub use rand::random;
     pub use std::time::Duration;
 }
+
+// use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 use crate::prelude::*;
 
@@ -54,6 +58,8 @@ mod resources;
 mod roof;
 mod shuriken;
 mod splash;
+mod title_screen;
+mod transition;
 mod utils;
 mod walls;
 mod waves;
@@ -108,7 +114,10 @@ fn main() {
         .add_plugin(EasingsPlugin)
         .add_plugin(WavePlugin)
         .add_plugin(SplashPlugin)
-        .insert_resource(EnemyCount(0))
+        .add_plugin(TitleScreenPlugin)
+        .add_plugin(TransitionPlugin)
+        // .add_plugin(LogDiagnosticsPlugin::default())
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
         .add_system_to_stage(CoreStage::PostUpdate, despawner::<MarkDespawn>)
         .add_state(GameState::Initial)
