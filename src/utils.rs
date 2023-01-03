@@ -4,6 +4,8 @@ use crate::prelude::*;
 pub enum GameState {
     Initial,
     Splash,
+    Transition,
+    TitleScreen,
     MainMenu,
     InGame,
     Paused,
@@ -33,7 +35,7 @@ pub fn calculate_bounds(transform: &Transform, size: Option<Vec2>) -> Bounds {
     }
 }
 
-pub fn despawner<T: Component> (mut commands: Commands, to_despawn: Query<Entity, With<T>>,) {
+pub fn despawner<T: Component>(mut commands: Commands, to_despawn: Query<Entity, With<T>>) {
     for entity in to_despawn.iter() {
         commands.entity(entity).despawn_recursive();
     }
