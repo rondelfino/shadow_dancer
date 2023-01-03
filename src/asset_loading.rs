@@ -2,7 +2,8 @@ use bevy::{asset::Asset, ecs::system::SystemParam};
 
 use crate::{
     assets::{self, GameAssets},
-    prelude::*, splash,
+    prelude::*,
+    splash, title_screen, transition,
 };
 use std::{marker::PhantomData, vec};
 
@@ -23,7 +24,7 @@ pub struct NextState {
 impl Default for NextState {
     fn default() -> Self {
         NextState {
-            state: GameState::MainMenu,
+            state: GameState::TitleScreen,
         }
     }
 }
@@ -99,8 +100,10 @@ impl<'w, 's> AssetHandler<'w, 's> {
         game_assets: &mut ResMut<GameAssets>,
     ) {
         match game_state {
-            // AppState::TitleScreen => title_screen::load(self, game_assets),
             GameState::Splash => splash::load(self, game_assets),
+            GameState::Transition => transition::load(self, game_assets),
+            GameState::TitleScreen => title_screen::load(self, game_assets),
+            // GameState::MainMenu => main_menu::load(self, game_assets),
             GameState::LoadWorld => assets::AssetsPlugin::load(self, game_assets),
             _ => (),
         }
