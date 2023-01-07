@@ -1,3 +1,5 @@
+use bevy::input::keyboard::KeyboardInput;
+
 use crate::prelude::*;
 
 pub struct TransitionPlugin;
@@ -6,7 +8,11 @@ impl Plugin for TransitionPlugin {
         app.add_system_set(
             SystemSet::on_enter(GameState::Transition).with_system(initialize_movie), // .after(play_title_screen_music),
         )
-        .add_system_set(SystemSet::on_update(GameState::Transition).with_system(transition));
+        .add_system_set(
+            SystemSet::on_update(GameState::Transition)
+                .with_system(transition)
+                .with_system(next_state),
+        );
     }
 }
 
@@ -157,6 +163,7 @@ pub fn transition(
                 }
                 if animation_clip.index >= 13 {
                     asset_handler.load(GameState::TitleScreen, &mut game_assets);
+                    
                 }
                 if texture_atlas.index == 6 {
                     bgm_events.send(BGMEvents::TitleScreenMusic);
@@ -173,4 +180,14 @@ pub fn initialize_movie(
 ) {
     commands.spawn(TransitionBundle::new(game_assets));
     sfx_events.send(SFXEvents::MeleeAttackSound);
+}
+
+pub fn next_state(
+    mut game_assets: ResMut<GameAssets>,
+    mut asset_handler: AssetHandler,
+    mut keyboard_input_events: EventReader<KeyboardInput>,
+) {
+    for _ in keyboard_input_events.iter() {
+        asset_handler.load(GameState::TitleScreen, &mut game_assets);
+    }
 }
