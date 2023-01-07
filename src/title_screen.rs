@@ -1,3 +1,5 @@
+use bevy::input::keyboard::KeyboardInput;
+
 use crate::prelude::*;
 
 pub struct TitleScreenPlugin;
@@ -7,10 +9,15 @@ impl Plugin for TitleScreenPlugin {
             .add_system_set(
                 SystemSet::on_enter(GameState::TitleScreen).with_system(title_screen_setup),
             )
-            .add_system_set(SystemSet::on_update(GameState::TitleScreen).with_system(flash_text))
+            .add_system_set(
+                SystemSet::on_update(GameState::TitleScreen)
+                    .with_system(flash_text)
+                    .with_system(next_state),
+            )
             .add_system_set(
                 SystemSet::on_exit(GameState::TitleScreen)
                     .with_system(despawner::<OnTitleScreen>)
+                    .with_system(despawner::<FlashingText>)
                     .with_system(despawner::<Transition>),
             );
     }
@@ -18,6 +25,9 @@ impl Plugin for TitleScreenPlugin {
 
 #[derive(Component)]
 pub struct OnTitleScreen;
+
+#[derive(Component)]
+pub struct FlashingText;
 
 pub fn load(asset_handler: &mut AssetHandler, game_assets: &mut ResMut<GameAssets>) {
     asset_handler.add_font(
@@ -28,6 +38,7 @@ pub fn load(asset_handler: &mut AssetHandler, game_assets: &mut ResMut<GameAsset
         &mut game_assets.title_screen_bgm,
         "music/02 - Title - Keisuke Tsukahara.ogg",
     );
+    asset_handler.add_sprites(&mut game_assets.title_screen, "intro/title_screen.png");
 }
 
 #[derive(Resource, Debug)]
@@ -57,6 +68,25 @@ fn title_screen_setup(mut commands: Commands, game_assets: Res<GameAssets>) {
         },
     );
 
+    let scale = (WORLD_HEIGHT / 224.0) * CAMERA_SCALE;
+
+    commands.spawn((
+        SpriteBundle {
+            texture: game_assets.title_screen.clone(),
+            transform: Transform {
+                translation: Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 1.0,
+                },
+                scale: Vec3::splat(scale),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        OnTitleScreen,
+    ));
+
     commands
         .spawn((
             NodeBundle {
@@ -76,12 +106,12 @@ fn title_screen_setup(mut commands: Commands, game_assets: Res<GameAssets>) {
             OnTitleScreen,
         ))
         .with_children(|commands| {
-            commands.spawn(title_text.clone());
+            commands.spawn((title_text.clone(), FlashingText));
         });
 }
 
 pub fn flash_text(
-    mut query: Query<&mut Visibility, With<OnTitleScreen>>,
+    mut query: Query<&mut Visibility, With<FlashingText>>,
     mut title_timer: ResMut<TitleTimer>,
     time: Res<Time>,
 ) {
@@ -93,5 +123,14 @@ pub fn flash_text(
                 *text_visibility = Visibility::VISIBLE
             }
         }
+    }
+}
+pub fn next_state(
+    mut game_assets: ResMut<GameAssets>,
+    mut asset_handler: AssetHandler,
+    mut keyboard_input_events: EventReader<KeyboardInput>,
+) {
+    for _ in keyboard_input_events.iter() {
+        asset_handler.load(GameState::MainMenu, &mut game_assets);
     }
 }
