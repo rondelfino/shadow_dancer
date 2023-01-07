@@ -14,6 +14,7 @@ pub enum SFXEvents {
     ShurikenSound,
     ReflectionSound,
     MeleeAttackSound,
+    MenuSFX,
 }
 
 pub enum BGMEvents {
@@ -65,6 +66,9 @@ fn play_sfx(
             }
             SFXEvents::MeleeAttackSound => {
                 audio.play(game_assets.melee_attack_sound.clone());
+            }
+            SFXEvents::MenuSFX => {
+                audio.play(game_assets.menu_sfx.clone());
             }
         }
     }
