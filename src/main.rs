@@ -39,6 +39,10 @@ mod prelude {
 
 // use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
+// use input::InputMapPlugin;
+
+use main_menu::MainMenuPlugin;
+
 use crate::prelude::*;
 
 mod asset_loading;
@@ -52,6 +56,7 @@ mod constants;
 mod death_effect;
 mod enemy;
 mod game_script;
+mod main_menu;
 mod pause_menu;
 mod player;
 mod resources;
@@ -63,6 +68,7 @@ mod transition;
 mod utils;
 mod walls;
 mod waves;
+// mod input;
 
 pub fn pause_game(event: Res<PauseEvent>, query: Query<&Player>) -> ShouldRun {
     let player = query.get_single();
@@ -116,6 +122,8 @@ fn main() {
         .add_plugin(SplashPlugin)
         .add_plugin(TitleScreenPlugin)
         .add_plugin(TransitionPlugin)
+        .add_plugin(MainMenuPlugin)
+        // .add_plugin(InputMapPlugin)
         // .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))

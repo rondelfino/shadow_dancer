@@ -24,9 +24,12 @@ pub struct GameAssets {
     pub title_screen_bgm: Handle<KiraAudioSource>,
 
     pub menu_font: Handle<Font>,
+    pub menu_arrow: Handle<Image>,
+    pub menu_sfx: Handle<KiraAudioSource>,
 
     pub splash_screen: Handle<Image>,
     pub transition: Handle<TextureAtlas>,
+    pub title_screen: Handle<Image>,
 }
 
 pub struct AssetsPlugin;
