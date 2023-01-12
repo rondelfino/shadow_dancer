@@ -12,6 +12,15 @@ pub enum SFXEvents {
     CollisionSound,
     DeathSound,
     ShurikenSound,
+    ReflectionSound,
+    MeleeAttackSound,
+    MenuSFX,
+}
+
+pub enum BGMEvents {
+    TitleScreenMusic,
+    InGameMusic,
+    // EndStageMusic,
 }
 
 impl Plugin for GameAudioPlugin {
@@ -20,13 +29,11 @@ impl Plugin for GameAudioPlugin {
             .add_audio_channel::<BGMChannel>()
             .add_audio_channel::<SFXChannel>()
             .add_event::<SFXEvents>()
+            .add_event::<BGMEvents>()
             .add_startup_system_to_stage(StartupStage::PreStartup, set_audio_channel_volume)
-            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(play_bgm))
-            .add_system_set(
-                SystemSet::on_update(GameState::InGame)
-                    .with_system(play_sfx.after(collision_system))
-                    ,
-            );
+            .add_system_set(SystemSet::on_enter(GameState::EndStage).with_system(fade_out_bgm))
+            .add_system(play_sfx)
+            .add_system(play_bgm);
     }
 }
 
@@ -34,8 +41,8 @@ pub fn set_audio_channel_volume(
     music_channel: Res<AudioChannel<BGMChannel>>,
     effects_channel: Res<AudioChannel<SFXChannel>>,
 ) {
-    music_channel.set_volume(0.025);
-    effects_channel.set_volume(0.075);
+    music_channel.set_volume(0.010);
+    effects_channel.set_volume(0.1);
 }
 
 fn play_sfx(
@@ -54,6 +61,15 @@ fn play_sfx(
             SFXEvents::ShurikenSound => {
                 audio.play(game_assets.shuriken_sound.clone());
             }
+            SFXEvents::ReflectionSound => {
+                audio.play(game_assets.reflection_sound.clone());
+            }
+            SFXEvents::MeleeAttackSound => {
+                audio.play(game_assets.melee_attack_sound.clone());
+            }
+            SFXEvents::MenuSFX => {
+                audio.play(game_assets.menu_sfx.clone());
+            }
         }
     }
 
@@ -62,12 +78,30 @@ fn play_sfx(
     }
 }
 
-pub fn play_bgm(audio: Res<AudioChannel<BGMChannel>>, game_assets: Res<GameAssets>) {
-    audio
-        .play(game_assets.bgm_01.clone())
-        .fade_in(AudioTween::new(
-            Duration::from_secs(2),
-            AudioEasing::OutPowi(2),
-        ))
-        .looped();
+fn play_bgm(
+    audio: Res<AudioChannel<BGMChannel>>,
+    game_assets: Res<GameAssets>,
+    mut bgm_events: EventReader<BGMEvents>,
+) {
+    for event in bgm_events.iter() {
+        match event {
+            BGMEvents::TitleScreenMusic => {
+                audio.play(game_assets.title_screen_bgm.clone());
+            }
+            BGMEvents::InGameMusic => {
+                audio.play(game_assets.ingame_bgm.clone());
+            }
+        }
+    }
+
+    if !bgm_events.is_empty() {
+        bgm_events.clear();
+    }
+}
+
+pub fn fade_out_bgm(audio: Res<AudioChannel<BGMChannel>>) {
+    audio.pause().fade_out(AudioTween::new(
+        Duration::from_secs(5),
+        AudioEasing::OutPowi(2),
+    ));
 }

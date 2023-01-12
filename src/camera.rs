@@ -5,9 +5,7 @@ use crate::prelude::*;
 pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            SystemSet::on_enter(GameState::InGame).with_system(Self::camera_setup),
-        );
+        app.add_system_set(SystemSet::on_enter(GameState::Splash).with_system(Self::camera_setup));
     }
 }
 

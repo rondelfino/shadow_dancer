@@ -17,10 +17,19 @@ pub struct GameAssets {
     pub collision_sound: Handle<KiraAudioSource>,
     pub death_sound: Handle<KiraAudioSource>,
     pub shuriken_sound: Handle<KiraAudioSource>,
+    pub reflection_sound: Handle<KiraAudioSource>,
+    pub melee_attack_sound: Handle<KiraAudioSource>,
 
-    pub bgm_01: Handle<KiraAudioSource>,
+    pub ingame_bgm: Handle<KiraAudioSource>,
+    pub title_screen_bgm: Handle<KiraAudioSource>,
 
     pub menu_font: Handle<Font>,
+    pub menu_arrow: Handle<Image>,
+    pub menu_sfx: Handle<KiraAudioSource>,
+
+    pub splash_screen: Handle<Image>,
+    pub transition: Handle<TextureAtlas>,
+    pub title_screen: Handle<Image>,
 }
 
 pub struct AssetsPlugin;
@@ -66,15 +75,17 @@ impl AssetsPlugin {
         asset_handler.add_audio(&mut game_assets.collision_sound, "sfx/impact.ogg");
         asset_handler.add_audio(&mut game_assets.death_sound, "sfx/disintegrate.ogg");
         asset_handler.add_audio(&mut game_assets.shuriken_sound, "sfx/shuriken.ogg");
+        asset_handler.add_audio(&mut game_assets.reflection_sound, "sfx/parry.ogg");
+        asset_handler.add_audio(&mut game_assets.melee_attack_sound, "sfx/melee_attack.ogg");
 
         asset_handler.add_audio(
-            &mut game_assets.bgm_01,
-            "music/15 - Statue of Liberty (Round 3-2) - Keisuke Tsukahara.ogg",
+            &mut game_assets.ingame_bgm,
+            "music/08 - Bonus Stage - Keisuke Tsukahara.ogg",
         );
 
         asset_handler.add_font(
             &mut game_assets.menu_font,
             "ui/shadow-dancer-the-secret-of-shinobi-smd.ttf",
-        )
+        );
     }
 }

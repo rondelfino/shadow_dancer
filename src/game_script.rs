@@ -36,8 +36,7 @@ impl Default for GameScriptState {
 
 fn load_state(
     mut assets_handler: AssetHandler,
-    mut game_assets: ResMut<GameAssets>,
-
+    mut game_assets: ResMut<GameAssets>, 
     game_script_state: Res<GameScriptState>,
 ) {
     println!("Loading state {:?}", game_script_state.current);

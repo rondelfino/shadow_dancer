@@ -16,12 +16,17 @@ mod prelude {
     pub use crate::resources::*;
     pub use crate::roof::*;
     pub use crate::shuriken::*;
+    pub use crate::splash::*;
+    pub use crate::title_screen::*;
+    pub use crate::transition::*;
     pub use crate::utils::*;
     pub use crate::walls::*;
+    pub use crate::waves::*;
 
     pub use bevy::{
         math::Vec3Swizzles, prelude::*, render::camera::ScalingMode, sprite::collide_aabb::collide,
     };
+    pub use bevy_easings::*;
     pub use bevy_kira_audio::prelude::{
         AudioApp, AudioChannel, AudioControl, AudioEasing, AudioPlugin as KiraAudioPlugin,
         AudioSource as KiraAudioSource, AudioTween,
@@ -31,6 +36,12 @@ mod prelude {
     pub use rand::random;
     pub use std::time::Duration;
 }
+
+// use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+
+// use input::InputMapPlugin;
+
+use main_menu::MainMenuPlugin;
 
 use crate::prelude::*;
 
@@ -45,19 +56,25 @@ mod constants;
 mod death_effect;
 mod enemy;
 mod game_script;
+mod main_menu;
 mod pause_menu;
 mod player;
 mod resources;
 mod roof;
 mod shuriken;
+mod splash;
+mod title_screen;
+mod transition;
 mod utils;
 mod walls;
+mod waves;
+// mod input;
 
 pub fn pause_game(event: Res<PauseEvent>, query: Query<&Player>) -> ShouldRun {
     let player = query.get_single();
     match player {
         Ok(p) => {
-            if *event == PauseEvent::Unpaused && p.1 == PlayerState::Main {
+            if *event == PauseEvent::Unpaused && p.1 == LevelState::Start {
                 ShouldRun::Yes
             } else {
                 ShouldRun::No
@@ -100,8 +117,15 @@ fn main() {
         .add_plugin(WallPlugin)
         .add_plugin(ShurikenPlugin)
         .add_plugin(PauseMenuPlugin)
-        .insert_resource(SpawnTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
-        .insert_resource(EnemyCount(0))
+        .add_plugin(EasingsPlugin)
+        .add_plugin(WavePlugin)
+        .add_plugin(SplashPlugin)
+        .add_plugin(TitleScreenPlugin)
+        .add_plugin(TransitionPlugin)
+        .add_plugin(MainMenuPlugin)
+        // .add_plugin(InputMapPlugin)
+        // .add_plugin(LogDiagnosticsPlugin::default())
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_system_set(SystemSet::on_update(GameState::InGame).with_system(death_effect_animator))
         .add_system_to_stage(CoreStage::PostUpdate, despawner::<MarkDespawn>)
         .add_state(GameState::Initial)
@@ -113,9 +137,5 @@ fn bootstrap(
     mut assets_handler: asset_loading::AssetHandler,
     mut game_assets: ResMut<assets::GameAssets>,
 ) {
-    assets_handler.load(GameState::LoadWorld, &mut game_assets);
-}
-
-fn test(game_state: Res<State<GameState>>) {
-    println!("{:?}", game_state);
+    assets_handler.load(GameState::Splash, &mut game_assets);
 }
