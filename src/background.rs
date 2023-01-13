@@ -12,7 +12,7 @@ pub struct BonusStageTimer(pub Timer);
 
 impl Default for BonusStageTimer {
     fn default() -> Self {
-        BonusStageTimer(Timer::from_seconds(2.0, TimerMode::Once))
+        BonusStageTimer(Timer::from_seconds(55.0, TimerMode::Once))
     }
 }
 
